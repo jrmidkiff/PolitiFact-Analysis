@@ -1,0 +1,14 @@
+name: James' Website
+output_dir: '.'
+navbar:
+  title: James' Website
+  left:
+  - text: Analysis
+    href: index.html
+  - text: R Code
+    href: Code.html
+output:
+  html_document:
+    lib_dir: site_libs
+    self_contained: no
+

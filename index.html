@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="James Midkiff" />
+
+
+<title>PolitiFact - 10+ Years of Fact Checking</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">James' Website</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Analysis</a>
+</li>
+<li>
+  <a href="Code.html">R Code</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">PolitiFact - 10+ Years of Fact Checking</h1>
+<h4 class="author"><em>James Midkiff</em></h4>
+
+</div>
+
+
+<p>This analysis was conducted at 2017-12-28 10:00:17 and only captures statement ratings PolitiFact published before that time. This project should auto-update each time that I re-run the R script.</p>
+<div id="background" class="section level2">
+<h2>Background</h2>
+<p>According to its website, <a href="www.politifact.com">PolitiFact</a> is a “fact-checking website that rates the accuracy of claims by elected officials and others who speak up in American politics.” The goal of this project is to analyze all of the ratings that PolitiFact has issued since it began in 2007 and to look for trends and other curiosities in the data. Besides strengthening my data analysis and mark-up skills, my motivations for this project have been my admiration of PolitiFact’s non-partisan fact-checking and my own simple curiosity.</p>
+<p>The most recent statements evaluated by PolitiFact appear at this page, (<a href="http://www.politifact.com/truth-o-meter/statements/" class="uri">http://www.politifact.com/truth-o-meter/statements/</a>). As of the date and time I ran this code, <strong>PolitiFact has evaluated a total of 14,150 ratings</strong>. [^1]</p>
+<div id="truth-o-meter-vs.flip-o-meter" class="section level3">
+<h3>Truth-O-Meter vs. Flip-O-Meter</h3>
+<p>On its site, PolitiFact evaluates statements using either its Truth-O-Meter or its Flip-O-Meter system. In short, the Truth-O-Meter is used to evaluate statements for their <strong><em>accuracy</em></strong> (did the speaker say the truth, a falsehood, or something in between?), while the Flip-O-Meter is used to evaluate an official’s <strong><em>consistency</em></strong> on an issue (did they maintain their position, or partly/completely change their stance on a topic?).</p>
+<p>From here on, my analysis will focus only on those statements evaluated by the Truth-O-Meter since they are much more numerous. There are <strong>13,921 (98.4%) Truth-O-Meter Ratings</strong> and 229 (1.6%) Flip-O-Meter Ratings.</p>
+<p>PolitiFact assigns statements one of six possible ratings to Truth-O-Meter Ratings:</p>
+<ul>
+<li><p><strong>TRUE</strong> - The statement is accurate and there’s nothing significant missing.</p></li>
+<li><p><strong>MOSTLY TRUE</strong> - The statement is accurate but needs clarification or additional information.</p></li>
+<li><p><strong>HALF TRUE</strong> - The statement is partially accurate but leaves out important details or takes things out of context.</p></li>
+<li><p><strong>MOSTLY FALSE</strong> - The statement contains an element of truth but ignores critical facts that would give a different impression.</p></li>
+<li><p><strong>FALSE</strong> - The statement is not accurate.</p></li>
+<li><p><strong>PANTS ON FIRE</strong> - The statement is not accurate and makes a ridiculous claim.</p></li>
+</ul>
+<p>For more information on how PolitiFact selects and evaluates statements, see <a href="http://www.politifact.com/truth-o-meter/article/2013/nov/01/principles-politifact-punditfact-and-truth-o-meter/">here</a>.</p>
+</div>
+</div>
+<div id="truth-o-meter-summary-statistics" class="section level2">
+<h2>Truth-O-Meter Summary Statistics</h2>
+<p><img src="index_files/figure-html/Total%20Truth-O-Meter%20Ratings-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>If we consider “truths” to be those statements PolitiFact rated as <em>Mostly True</em> or <em>True</em> and “falsehoods” to be those rated as <em>Pants on Fire!</em>, <em>False</em>, or <em>Mostly False</em>, then <strong>34.8% of the total statements rated were <em>truths</em></strong>, <strong>45.2% of the total statements rated were <em>falsehoods</em></strong>, and the remaining <strong>20.0%</strong> statements were <strong><em>Half-True</em></strong> . As such, PolitiFact has rated more statements as falsehoods than as truths; whether this represents a selection bias on PolitiFact’s part or the nature of American political rhetoric is something not possible to say with this data alone.</p>
+<div id="rating-issuer" class="section level3">
+<h3>Rating Issuer</h3>
+<p>PolitiFact is made up of various “Editions” that focus on different sources for the statements that they will rate. There are a total of 25 editions, which I have grouped into two main categories: “State” Editions that focus on statements made by officials or people in a certain U.S. state (21 such editions) and “Non-State” Editions that do not focus on a a single state (the remaining 4 editions). These 21 State Editions cover states with a total of 345 electoral votes, equal to 64.1% of the total electoral votes available for presidential elections.</p>
+<p>As we see from this table, PolitiFact National was the source for over one-third of the total statements evaluated. This is likely due in part to the fact that it was the earliest edition founded. The other “Not State” editions include PunditFact, which evaluates statements made by political pundits, PolitiFact Global News Service, which evaluates statements made about Health and Development, and PolitiFact NBC, which is a partnership between PolitiFact and NBC.</p>
+<table>
+<caption>The Various PolitiFact Editions</caption>
+<thead>
+<tr class="header">
+<th align="left">Rank</th>
+<th align="left">Issuer</th>
+<th align="right">Founded</th>
+<th align="right">Type</th>
+<th align="right">Total Ratings</th>
+<th align="right">Proportion</th>
+<th align="right">Electoral Votes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="left">PolitiFact National</td>
+<td align="right">2007</td>
+<td align="right">Not State</td>
+<td align="right">4654</td>
+<td align="right">33.4%</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="left">PolitiFact Florida</td>
+<td align="right">2009</td>
+<td align="right">State</td>
+<td align="right">1429</td>
+<td align="right">10.3%</td>
+<td align="right">29</td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="left">PolitiFact Texas</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">1353</td>
+<td align="right">9.7%</td>
+<td align="right">38</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="left">PolitiFact Wisconsin</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">1257</td>
+<td align="right">9.0%</td>
+<td align="right">10</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="left">PunditFact</td>
+<td align="right">2013</td>
+<td align="right">Not State</td>
+<td align="right">934</td>
+<td align="right">6.7%</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">6</td>
+<td align="left">PolitiFact Georgia</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">865</td>
+<td align="right">6.2%</td>
+<td align="right">16</td>
+</tr>
+<tr class="odd">
+<td align="left">7</td>
+<td align="left">PolitiFact Ohio</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">592</td>
+<td align="right">4.3%</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">8</td>
+<td align="left">PolitiFact Rhode Island</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">545</td>
+<td align="right">3.9%</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">9</td>
+<td align="left">PolitiFact Virginia</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">540</td>
+<td align="right">3.9%</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="left">10</td>
+<td align="left">PolitiFact New Jersey</td>
+<td align="right">2011</td>
+<td align="right">State</td>
+<td align="right">391</td>
+<td align="right">2.8%</td>
+<td align="right">14</td>
+</tr>
+<tr class="odd">
+<td align="left">11</td>
+<td align="left">PolitiFact Oregon</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">390</td>
+<td align="right">2.8%</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="left">12</td>
+<td align="left">PolitiFact New Hampshire</td>
+<td align="right">2011</td>
+<td align="right">State</td>
+<td align="right">155</td>
+<td align="right">1.1%</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">13</td>
+<td align="left">PolitiFact California</td>
+<td align="right">2015</td>
+<td align="right">State</td>
+<td align="right">119</td>
+<td align="right">0.9%</td>
+<td align="right">55</td>
+</tr>
+<tr class="even">
+<td align="left">14</td>
+<td align="left">PolitiFact Global News Service</td>
+<td align="right">2016</td>
+<td align="right">Not State</td>
+<td align="right">91</td>
+<td align="right">0.7%</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">15</td>
+<td align="left">PolitiFact Missouri</td>
+<td align="right">2015</td>
+<td align="right">State</td>
+<td align="right">90</td>
+<td align="right">0.6%</td>
+<td align="right">10</td>
+</tr>
+<tr class="even">
+<td align="left">16</td>
+<td align="left">PolitiFact New York</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">87</td>
+<td align="right">0.6%</td>
+<td align="right">29</td>
+</tr>
+<tr class="odd">
+<td align="left">17</td>
+<td align="left">PolitiFact North Carolina</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">87</td>
+<td align="right">0.6%</td>
+<td align="right">15</td>
+</tr>
+<tr class="even">
+<td align="left">18</td>
+<td align="left">PolitiFact Pennsylvania</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">80</td>
+<td align="right">0.6%</td>
+<td align="right">20</td>
+</tr>
+<tr class="odd">
+<td align="left">19</td>
+<td align="left">PolitiFact Tennessee</td>
+<td align="right">2012</td>
+<td align="right">State</td>
+<td align="right">76</td>
+<td align="right">0.5%</td>
+<td align="right">11</td>
+</tr>
+<tr class="even">
+<td align="left">20</td>
+<td align="left">PolitiFact Illinois</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">62</td>
+<td align="right">0.4%</td>
+<td align="right">20</td>
+</tr>
+<tr class="odd">
+<td align="left">21</td>
+<td align="left">PolitiFact Nevada</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">41</td>
+<td align="right">0.3%</td>
+<td align="right">6</td>
+</tr>
+<tr class="even">
+<td align="left">22</td>
+<td align="left">PolitiFact Arizona</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">38</td>
+<td align="right">0.3%</td>
+<td align="right">11</td>
+</tr>
+<tr class="odd">
+<td align="left">23</td>
+<td align="left">PolitiFact Colorado</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">30</td>
+<td align="right">0.2%</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">24</td>
+<td align="left">PolitiFact Iowa</td>
+<td align="right">2015</td>
+<td align="right">State</td>
+<td align="right">12</td>
+<td align="right">0.1%</td>
+<td align="right">6</td>
+</tr>
+<tr class="odd">
+<td align="left">25</td>
+<td align="left">PolitiFact NBC</td>
+<td align="right">2016</td>
+<td align="right">Not State</td>
+<td align="right">3</td>
+<td align="right">0.0%</td>
+<td align="right">NA</td>
+</tr>
+</tbody>
+</table>
+<p>Given that only a subset of all of the PolitiFact Editions are responsible for the vast majority of the statement ratings, I am going to focus on those Editions which individually were responsible for more than 1% of the Truth-O-Meter ratings. These top 12 PolitiFact Editions were cumulatively responsible for 94.1% of the total statements rated.</p>
+<p>Looking at the most important PolitiFact Editions, I have set up a metric to measure the average truthfulness of the statements that they have rated. Any statement that is rated as <em>True</em>, I have assigned a Truthfulness Score of +2. Likewise, any statement that PolitiFact has rated <em>False</em>, I have assigned a Truthfulness value of -2. <em>Mostly True</em>, <em>Half-True</em>, and <em>Mostly False</em> statements thus correspond to scores of +1, 0, and -1 respectively. <em>Pants on Fire!</em> claims are “False” statements that are especially ridiculous, so I have given them a Truthfulness Score of -3 (see Table below).</p>
+<table>
+<caption>Truthfulness Score per Statement Rating</caption>
+<thead>
+<tr class="header">
+<th align="left">Statement Rating</th>
+<th align="right">Truthfulness Score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">True</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">Mostly True</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">Half-True</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">Mostly False</td>
+<td align="right">-1</td>
+</tr>
+<tr class="odd">
+<td align="left">False</td>
+<td align="right">-2</td>
+</tr>
+<tr class="even">
+<td align="left">Pants on Fire!</td>
+<td align="right">-3</td>
+</tr>
+</tbody>
+</table>
+<p>Using then the top 12 PolitiFact Editions, I have generated a Mean Truthfulness Score for all of the statements PolitiFact has examined. This number takes the total number of statements by rating (e.g. <em>True</em>, <em>Mostly True</em>, etc.), the Truthfulness Score I have assigned each rating, and then divides the sum of those Truthfulness values by the total number of ratings that each Edition has made. In other words, this metric says “What is the average truthfulness of a statement evaluated by each PolitiFact Edition?”.</p>
+<p>As we see from the graph below, <strong>PunditFact has the lowest average Truthfulness score at -1.128</strong>, which means that the <em>average</em> statement that PunditFact rates is <strong><em>Mostly False</em></strong>. Rounding out the top three, PolitiFact Wisconsin and PolitiFact National were the next Editions with the lowest average Truthfulness Scores. On the other end of the spectrum <strong>PolitiFact Georgia and PolitiFact Ohio were the only Editions who had a positive truthfulness rating</strong>, meaning that the <em>average</em> statement they rated was at least <strong><em>Half-True</em></strong>.</p>
+<p><img src="index_files/figure-html/Mean%20Truthfulness%20Score%20Graph-1.png" width="1008" style="display: block; margin: auto;" /></p>
+</div>
+<div id="ratings-over-time" class="section level3">
+<h3>Ratings Over Time</h3>
+<p>Given that PolitiFact’s provides the date that it has rated each statement, it may be interesting to explore if the relative truthfulness of the statements rated has changed over time. Since mid-2010, PolitiFact has generally issued about 3-4 statement ratings per day. In the below graph, I have taken the Mean Truthfulness Score for all of the statements that PolitiFact has evaluated each month (excluding months where PolitiFact rated fewer than 30 statements) and a smooth line to estimate the average Mean Truthfulness Score over time.</p>
+<p>Some interesting trends present themselves.</p>
+<ol style="list-style-type: decimal">
+<li>The Mean Truthfulness Score for each month is generally negative (the overall rating for all statements PolitiFact has rated was -0.33). There were only two occasions where the Mean Truthfulness Score was notably positive for a few months in a row: September and October of 2007 (early in PolitiFact’s rating history) and around December 2012 / January 2013. To a smaller extent, this same positive blip also occurred in December 2014 / January 2015. Maybe the PolitiFact staff around the holiday season join in the spirit of giving by becoming more generous with their ratings?<br />
+</li>
+<li>I had thought that the presidential campaign season, which for the sake of argument I have set as one-year prior to the presidential election, would have seen several months with particularly low Mean Truthfulness Scores. My thinking was that close to the presidential election season, we would see politicians lying a lot more at the last minute to get elected. At least from this graph, these factors appear to be uncorrelated, though that may be due to the fact that there are not many presidential candidates per election and the number of them decreases as the election date approaches.<br />
+</li>
+<li>The Mean Truthfulness Score for each month has become remarkably negative since April 2017, with the <strong>record low in December 2017 at -1.338</strong> as you can see in the graph below. Each month since April (except October) has broken the previously low record set in August 2009. Why is this so? Some possible ideas may be:
+<ol style="list-style-type: lower-roman">
+<li><a href="http://www.people-press.org/interactives/political-polarization-1994-2017/">Increased political polarization</a> whereby politics has gotten to the point where candidates will say anything to win<br />
+</li>
+<li>An artefact of the <a href="https://www.economist.com/news/briefing/21706498-dishonesty-politics-nothing-new-manner-which-some-politicians-now-lie-and">post-truth</a> era some pundits think we have entered into?<br />
+</li>
+<li>Donald Trump and his notoriety for telling falsehoods<br />
+</li>
+<li>Or is there some other explanation?</li>
+</ol></li>
+</ol>
+<p><img src="index_files/figure-html/Avg.%20Score%20by%20Month%20Graph-1.png" width="1152" style="display: block; margin: auto;" /> Given how quickly PolitiFact’s monthly Mean Truthfulness Score becomes very negative after the 2016 presidenital election, I decided to separate the ratings into three mutually exclusive categories to figure out why:</p>
+<ol style="list-style-type: decimal">
+<li>I flagged as <strong>Website</strong> any rating made by an entity ending in <em>.com</em>, <em>.net</em>, <em>.org</em>, <em>.us</em>, <em>.edu</em>, <em>.gov</em> or that had the word <em>email</em>, <em>facebook</em>, <em>blog</em>, <em>tweet</em>, or <em>image</em> in its name.<br />
+</li>
+<li>I flagged as <strong>Trump</strong> any rating made by <em>Donald Trump</em>.<br />
+</li>
+<li>I flagged all other ratings as <strong>Other</strong>.</li>
+</ol>
+<p>I took the <em>subtotal</em> Mean Truthfulness values for these three statement categories and divided by the total number of ratings issued each month by PolitiFact. These steps allows me to determine what each of the three categories contributed to PolitiFact’s total Mean Truthfulness Score for each month.</p>
+<p>For example, in December 2017 for all of PolitiFact there were 74 total statements rated with a Mean Truthfulness Score of <strong>-1.338</strong>. This value correlates to the average statement being at least <em>Mostly False</em>, and this month has the lowest Mean Truthfulness Score since PolitiFact was founded as you can again see in the graph below. Of that -1.338 Mean Truthfulness Score:</p>
+<ul>
+<li>With 13 statements rated, <strong>Websites</strong> contributed -0.486 to this month’s Mean Truthfulness Score, equal to <strong>36.3%</strong> of it<br />
+</li>
+<li>With 7 statements rated, <strong>Donald Trump</strong> contributed -0.122 to this month’s Mean Truthfulness Score, equal to <strong>9.12%</strong> of it<br />
+</li>
+<li>And the remaining 54 statements rated contributed -0.73 to this month’s Mean Truthfulness Score, equal to the remaining <strong>54.6%</strong> of it</li>
+</ul>
+<p>Since December 2016, ratings of statements made by websites have been the single largest contributor to the highly negative Mean Truthfulness Scores of late. This coincides with the <a href="http://www.politifact.com/truth-o-meter/article/2017/dec/15/we-started-fact-checking-partnership-facebook-year/">founding of PolitiFact’s partnership with Facebook</a> to fact-check claims made on the social media site, and likely represents a push overall to rate the accuracy of more claims made online. [^2] Since December 2016, PolitiFact has rated an average of 19.2 statements made online per month and these statements have an average rating of -2.772, which is closest to <strong><em>Pants on Fire!</em></strong>. Prior to December 2016, PolitiFact only rated an average of 4.2 statements from websites per month, and with an average rating of -1.786 these ratings were closer to <strong><em>False</em></strong>.</p>
+<p><img src="index_files/figure-html/Trump/Websites/All%20Other%20Plot-1.png" width="1008" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="subject" class="section level2">
+<h2>Subject</h2>
+<p>PolitiFact groups together many of the statements it rates by the subject that statement addresses (e.g. Abortion, Patriotism, Obama Birth Certificate, etc.) <a href="http://www.politifact.com/subjects/">here</a>. PolitiFact also notes the frequency with which it assigns its six ratings (i.e. <em>True</em>, <em>Mostly True</em>, <em>Half-True</em>, <em>Mostly False</em>, <em>False</em>, and <em>Pants on Fire!</em>) to statements in each subject. Currently there are 149 different subjects. The most frequently discussed subjects and their Mean Truthfulness Scores are below:</p>
+<table>
+<caption>Most Discussed Subjects in PolitiFact Ratings</caption>
+<thead>
+<tr class="header">
+<th align="center">Rank</th>
+<th align="left">Subject</th>
+<th align="right">Total Ratings</th>
+<th align="right">Mean Truthfulness Score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">1</td>
+<td align="left">Health Care</td>
+<td align="right">1,580</td>
+<td align="right">-0.582</td>
+</tr>
+<tr class="even">
+<td align="center">2</td>
+<td align="left">Economy</td>
+<td align="right">1,505</td>
+<td align="right">-0.069</td>
+</tr>
+<tr class="odd">
+<td align="center">3</td>
+<td align="left">Taxes</td>
+<td align="right">1,337</td>
+<td align="right">-0.276</td>
+</tr>
+<tr class="even">
+<td align="center">4</td>
+<td align="left">Education</td>
+<td align="right">996</td>
+<td align="right">-0.102</td>
+</tr>
+<tr class="odd">
+<td align="center">5</td>
+<td align="left">Jobs</td>
+<td align="right">961</td>
+<td align="right">-0.168</td>
+</tr>
+<tr class="even">
+<td align="center">6</td>
+<td align="left">Federal Budget</td>
+<td align="right">956</td>
+<td align="right">-0.168</td>
+</tr>
+<tr class="odd">
+<td align="center">7</td>
+<td align="left">State Budget</td>
+<td align="right">920</td>
+<td align="right">-0.216</td>
+</tr>
+<tr class="even">
+<td align="center">8</td>
+<td align="left">Candidate Biography</td>
+<td align="right">827</td>
+<td align="right">-0.480</td>
+</tr>
+<tr class="odd">
+<td align="center">9</td>
+<td align="left">Elections</td>
+<td align="right">821</td>
+<td align="right">-0.311</td>
+</tr>
+<tr class="even">
+<td align="center">10</td>
+<td align="left">Immigration</td>
+<td align="right">746</td>
+<td align="right">-0.501</td>
+</tr>
+</tbody>
+</table>
+<p>Looking at the most truthfully discussed and most falsely discussed subjects, it comes as no surprise that topics such as “Fake news” and <a href="https://obamawhitehouse.archives.gov/sites/default/files/rss_viewer/birth-certificate-long-form.pdf">Obama’s Birth Certificate</a> have very negative Mean Truthfulness Scores. I leave it to others to ponder why topics such as “Population”, “Redistricting”, and “Gambling” are more truthfully discussed. I believe part of it has to do with uneven statement sampling.</p>
+<p><img src="index_files/figure-html/Best/Worst%20Topics%20The%20Graph-1.png" width="1008" style="display: block; margin: auto;" /></p>
+</div>
+<div id="individuals" class="section level2">
+<h2>Individuals</h2>
+<p>And finally, the last part of my analysis looks at various U.S. elected politicians’ individual records with the Truth-O-Meter. My intent has been to capture the most important U.S. politicians, whom I have defined to include current and recently former Presidents, Vice-Presidents, Presidential Candidates, Senators, Representatives, and Governors. [^3] In total, I will focus on the 468 Democratic and Republican U.S. politicians from these groups who have made statements that PolitiFact has rated.</p>
+<p>Interestingly, PolitiFact has rated statements by 18.7% more Republican politicians than Democratic ones (254 vs. 214) but it has rated 63.1% more statements by Republican politicians than statements by Democratic ones (4,085 vs. 2,504). See the table below:</p>
+<table>
+<caption>Number of Statements by Major U.S. Politicians by Party</caption>
+<thead>
+<tr class="header">
+<th align="left">Party</th>
+<th align="right">Number of Politicians Rated</th>
+<th align="right">Pants on Fire!</th>
+<th align="right">False</th>
+<th align="right">Mostly False</th>
+<th align="right">Half-True</th>
+<th align="right">Mostly True</th>
+<th align="right">True</th>
+<th align="right">Total Ratings</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Democratic</td>
+<td align="right">214</td>
+<td align="right">69</td>
+<td align="right">306</td>
+<td align="right">332</td>
+<td align="right">594</td>
+<td align="right">682</td>
+<td align="right">521</td>
+<td align="right">2,504</td>
+</tr>
+<tr class="even">
+<td align="left">Republican</td>
+<td align="right">254</td>
+<td align="right">307</td>
+<td align="right">887</td>
+<td align="right">803</td>
+<td align="right">822</td>
+<td align="right">694</td>
+<td align="right">572</td>
+<td align="right">4,085</td>
+</tr>
+</tbody>
+</table>
+<p>Next, I will look at which politicians have the highest Mean Truthfulness score by party. The five Democratic politicians with the highest Truthfulness Score are Sherrod Brown, Tim Kaine, Hillary Clinton, Bill Clinton, and Barack Obama while the five Democrats with the lowest Truthfulness Score are Terry McAuliffe, Nancy Pelosi, Debbie Wasserman Schultz, Tammy Baldwin, and Joe Biden. The five Republican politicians with the highest Truthfulness Score are Rob Portman, Nathan Deal, John Kasich, Jeb Bush, and Rand Paul while the five Republicans with the lowest truthfulness score are Michele Bachmann, Donald Trump, Ted Cruz, Newt Gingrich, and Rick Santorum. <strong>Notably, the five least truthful Democrats all have a higher Mean Truthfulness Score than the five least truthful Republicans.</strong></p>
+<p><img src="index_files/figure-html/Individual%20Graphs-1.png" width="1008" style="display: block; margin: auto;" /></p>
+<p>Currently, there are <strong>0 major U.S. Politicians who have not made a <em>False</em> or <em>Pants on Fire!</em> statement</strong>, among those with 30 or more statements rated by PolitiFact. The maxim that “All politicians lie” seems to be accurate, but it should be followed up with “but some lie a lot more than others.”</p>
+<div id="overall-party-mean-truthfulness-score" class="section level3">
+<h3>Overall Party Mean Truthfulness Score</h3>
+<p>The final part of my analysis includes grouping all of the major U.S. politicians who have received ratings from PolitiFact by party. This may be an accurate reflection of which party is more “truthful” or it may reflect selection-bias by me or by PolitiFact. Nonetheless, after performing a z-test on statements by major U.S. politicians from the Democratic and Republican party, I can say with greater than 99% confidence that the Mean Truthfulness Score for statements made by major U.S. Democratic politicians is statistically higher than that for major U.S. Republican politicians. [^4]</p>
+<p><img src="index_files/figure-html/Democrats%20and%20Republicans%20Total%20Graph-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="final-words" class="section level2">
+<h2>Final Words</h2>
+<p>This project is simply an effort to improve my data wrangling and analysis skills as well to create a personal and demonstrable product of my abilities. While I have no connection to PolitiFact, I deeply appreciate the work they do and I encourage others to do the same. I apologize for using up their server space while scraping their site, but hopefully any exposure of their work and financial contributions from myself and others can more than repay that.</p>
+<p>For information on joining PolitiFact, see <a href="http://www.politifact.com/truth-o-meter/blog/2011/oct/06/who-pays-for-politifact/">here</a>.</p>
+<p>If you have any suggestions about ideas to extend this analysis, please share them. You are free to share this github site (attributing me as the author) or to use any of the R code I have written for your own private, non-commercial use. Simply put, please respect the time and effort I put into this project.</p>
+<div id="footnotes" class="section level3">
+<h3>Footnotes</h3>
+<p>[^1] Not until I had done a lot data wrangling did I realize that PolitiFact seems to be missing from its site any ratings issued in November 2008. While it has ratings through October 31, 2008 and beginning again on December 1, 2008, there are no ratings at all for November 2008. Visit this page and nearby ones to verify (<a href="http://www.politifact.com/truth-o-meter/statements/?page=668" class="uri">http://www.politifact.com/truth-o-meter/statements/?page=668</a>)</p>
+<p>[^2] It appears that PolitiFact’s efforts to fact-check claims appearing on Facebook <a href="http://www.politifact.com/truth-o-meter/article/2017/dec/15/we-started-fact-checking-partnership-facebook-year/">do not appear in its Truth-O-Meter ratings</a>, which puts them beyond the scope of my analysis. When I discuss PolitiFact’s ratings of statements made by websites, I only analyze those that appear in PolitiFact’s Truth-O-Meter ratings.</p>
+<p>[^3] PolitiFact has rated statements by 3,652 different entities. In my analysis of statements by major politicians by their political party, I used the following lists:</p>
+<ol style="list-style-type: decimal">
+<li>U.S. Senators and Representatives from the 109th to the 115th Congressional Sessions, available <a href="https://www.congress.gov/members?q=%7B%22congress%22%3A%5B%22110%22%2C%22111%22%2C%22112%22%2C%22113%22%2C%22114%22%2C%22115%22%5D%7D">here</a>. I included all of the sessions that have overlapped with PolitiFact’s existence, which began in 2007.</li>
+<li>Current U.S. State Governors, available <a href="https://en.wikipedia.org/wiki/List_of_living_former_United_States_Governors">here</a></li>
+<li>Currently living former U.S. State Governors, available <a href="https://www.nga.org/files/live/sites/NGA/files/pdf/directories/GovernorsList.pdf">here</a></li>
+<li>List of <a href="https://www.nytimes.com/elections/2008/primaries/candidates/index.html">2008</a>, <a href="https://www.nytimes.com/elections/2012/primaries/candidates.html">2012</a>, and <a href="https://www.nytimes.com/interactive/2016/us/elections/2016-presidential-candidates.html?_r=0">2016</a> presidential candidates</li>
+</ol>
+<p>Because the matching process is difficult, I cannot guarantee that every individual who falls into the following categories has been accounted for but this should include enough politicians to make my conclusions and analysis valid. I furthermore sought to ensure that every valid U.S. politician who has had at least 10 statements rated by PolitiFact was included. The political party designation used comes from the above mentioned sources.</p>
+<p>The remaining entities whose individual records I have intentionally not chosen to analyze include:</p>
+<ul>
+<li>Organizations, civic initiatives, PACs, campaigns, party committees and the like</li>
+<li>Websites<br />
+</li>
+<li>Pundits such as Rush Limbaugh, Sean Hannity, Rachel Maddow, etc.<br />
+</li>
+<li>And Politicians whose only positions thus far are:
+<ul>
+<li>At the state level<br />
+</li>
+<li>In a non-elected appointment (i.e. to the cabinet level, ambassadorship, or the Supreme Court)<br />
+</li>
+<li>Unsuccessful campaigns for a political seat (other than U.S. president)<br />
+</li>
+<li>Not-yet assumed office (i.e. Governor-elect, Senator-elect, etc., but I do include Presidents-elect)</li>
+<li>Or not clearly associated with either the Democratic or Republican parties (e.g. I have excluded Gary Johnson, Ralph Nader, and Jesse Ventura, but not Bernie Sanders or Joe Lieberman).</li>
+</ul></li>
+</ul>
+<p>Keep in mind that many politicians who did fit my criteria may at some point have held a position on the above list. When I refer to ‘Democrats’ and ‘Republicans’ in my analysis, I am referring to politicians who I have been able to merge</p>
+<p>[^4] A z-test is used when the population variance and standard-deviation are known. Because I am considering the population only to be the statements that PolitiFact has rated (rather than <em>all</em> statements <em>all</em> politicians have made), I believe a z-test is more appropriate than a t-test. For Democrats, the standard deviation of their Mean Truthfulness Score is 1.387 and for Republicans it is 1.519 (all numbers in this footnote are rounded to three digits). In the z-test, the null hypothesis is that the true difference between the Mean Truthfulness Score of Democrats and Republicans is not equal to zero; currently the difference between those means is 0.635. With 99 percent confidence, the true difference between these means is estimated to be between 0.541 and 0.729.</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

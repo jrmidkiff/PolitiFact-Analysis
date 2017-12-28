@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="James Midkiff" />
+
+
+<title>PolitiFact - 10+ Years of Fact Checking</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">James' Website</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Analysis</a>
+</li>
+<li>
+  <a href="Code.html">R Code</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">PolitiFact - 10+ Years of Fact Checking</h1>
+<h4 class="author"><em>James Midkiff</em></h4>
+
+</div>
+
+
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(stringr)
+library(tidytext)
+library(scales)
+library(RColorBrewer)
+library(rvest)
+library(forcats)
+library(knitr)
+library(BSDA)
+rm(list = ls()) #Careful, this will wipe out your environment
+
+#Note to self, if the data is fresh and you don&#39;t want to rerun everything, load the workspace
+# IF YOU&#39;RE RE-RUNNING THE CODE, YOU WILL NEED TO UNCOMMENT THE 
+# load(&quot;D:/Everything/R/Politifact Investigation/Final_Final_Workspace.RData&quot;)</code></pre>
+<pre class="r"><code># Scrape######### 
+
+# I recommend that you minimize everything (Alt + O) and then uncover it section by section as you go through it since it&#39;s a lot of code. I&#39;m going to clear the envirnoment first and then save everything as an image that I can then use for the other page without code. 
+webpage &lt;- read_html(&quot;http://www.politifact.com/truth-o-meter/statements/&quot;)
+no_pages &lt;- html_text(html_nodes(webpage, &#39;.step-links__current&#39;))
+no_pages &lt;- as.integer(
+  str_extract(no_pages, &quot;\\d{3,4}(?=\n)&quot;))
+
+name &lt;- vector(&quot;list&quot;, length = no_pages) 
+source &lt;- vector(&quot;list&quot;, length = no_pages)
+date &lt;- vector(&quot;list&quot;, length = no_pages) 
+picture_rating &lt;- vector(&quot;list&quot;, length = no_pages) 
+statement_text &lt;- vector(&quot;list&quot;, length = no_pages) 
+explanation_text &lt;- vector(&quot;list&quot;, length = no_pages) 
+rating &lt;- vector(&quot;list&quot;, length = no_pages) 
+
+
+for (i in seq_along(1:length(name))) {
+  webpage &lt;- read_html(
+    str_c(&quot;http://www.politifact.com/truth-o-meter/statements/?page=&quot;, i))
+  
+  politifact_scrape &lt;- function(x) {
+    as_tibble(
+      html_text(
+        html_nodes(webpage, x)))
+  }
+  
+  name[[i]] &lt;- politifact_scrape(&#39;.statement__source a&#39;)  
+  source[[i]] &lt;- politifact_scrape(&#39;.statement__edition a&#39;)  
+  date[[i]] &lt;- politifact_scrape(&#39;.article__meta&#39;)  
+  statement_text[[i]] &lt;- politifact_scrape(&#39;.statement__text&#39;)  
+  explanation_text[[i]] &lt;- politifact_scrape(&#39;.quote&#39;)  
+  
+  #Take the image, use the alt-text to find the rating
+  attributes &lt;- html_attrs(
+      html_nodes(webpage, &#39;.meter img&#39;))
+  
+  for (j in seq_along(attributes)) {
+    rating[[i]][[j]] &lt;- attributes[[j]][[2]]
+  }
+  rating[[i]] &lt;- as_tibble(rating[[i]])
+  
+  Sys.sleep(time = 3) # Do a 3 second pause before running the loop again; uncomment this when running
+  
+  # This should take approximately 4 seconds (1 second of &#39;for loop&#39; run time 
+  # plus a 3 second mandatory wait) times 700-some pages divided by 60 seconds per 
+  # minute = ~50 minutes
+} 
+  
+options(max.print = 50)
+
+#Setting the appropriate length for the final dataset
+(length_each_page &lt;- length(name[[1]][[1]]))
+(length_last_page &lt;- length(name[[no_pages]][[1]]))
+
+#Subtract one b/c last page isn&#39;t complete
+(total_length &lt;- (no_pages - 1) * length_each_page + length_last_page) 
+
+politifact &lt;- tibble(yup = 1:total_length)
+
+combining_function &lt;- function(df, x) {
+  tibblez &lt;- do.call(&quot;rbind&quot;, x)
+  
+  var_name &lt;- substitute(x)
+  
+  df %&gt;%
+    bind_cols(tibblez) %&gt;%
+    rename(!!var_name := value) %&gt;%
+    select(-yup)
+  }
+
+(combined_name &lt;- combining_function(politifact, name))
+(combined_source &lt;- combining_function(politifact, source))
+(combined_date &lt;- combining_function(politifact, date))
+(combined_statement_text &lt;- combining_function(politifact, statement_text))
+(combined_explanation_text &lt;- combining_function(politifact, explanation_text))
+(combined_rating &lt;- combining_function(politifact, rating))
+
+#This below is the original dataset
+politifact_orig &lt;- bind_cols(combined_name, combined_source, combined_date, 
+                        combined_statement_text, combined_explanation_text, 
+                        combined_rating)
+politifact_orig &lt;- 
+  politifact_orig %&gt;%
+  mutate(name = str_replace_all(name, &quot;^\\s+&quot;, &quot;&quot;),
+         source = str_replace_all(source, &quot;^.{2}&quot;, &quot;&quot;),
+         rating = str_trim(rating),
+         date = mdy(
+           str_replace_all(date, &quot;^.+, (?=\\D)&quot;, &quot;&quot;)),
+         rating = fct_relevel(as_factor(rating), c(&quot;Pants on Fire!&quot;, &quot;False&quot;, 
+                                                   &quot;Mostly False&quot;, &quot;Half-True&quot;, 
+                                                   &quot;Mostly True&quot;, &quot;True&quot;, 
+                                                   &quot;Full Flop&quot;, &quot;Half Flip&quot;, 
+                                                   &quot;No Flip&quot;)))
+(rating_type &lt;- tibble(
+  rating = c(&quot;Pants on Fire!&quot;, &quot;False&quot;, &quot;Mostly False&quot;, &quot;Half-True&quot;, 
+                 &quot;Mostly True&quot;, &quot;True&quot;, &quot;Full Flop&quot;, &quot;Half Flip&quot;, &quot;No Flip&quot;),
+  Type = c(rep(&quot;Truth-O-Meter&quot;, 6), rep(&quot;Flip-O-Meter&quot;, 3))))
+
+rating_type &lt;- rating_type %&gt;% 
+  mutate(rating = fct_relevel(
+    as_factor(rating), levels(politifact_orig$rating)))
+
+politifact_orig &lt;- left_join(politifact_orig, rating_type, by = &quot;rating&quot;)
+
+politifact_orig &lt;- politifact_orig %&gt;%
+  mutate(website = if_else(str_detect(name, &quot;\\.com|\\.net|\\.gov|\\.org|\\.edu|\\.us$&quot;),
+                           TRUE, FALSE),
+         website = if_else(str_detect(name, regex(&quot;blog|facebook|(e|e-)mail|image|tweets|online&quot;, ignore_case = TRUE)), #Flag all of this as a website
+                           TRUE, website),
+         source = str_replace_all(source, &quot;^\\s|\\s$&quot;, &quot;&quot;),
+         politifact_location = if_else(str_detect(source, &quot;National|PunditFact|NBC|Global&quot;), 
+                                       &quot;Not State&quot;, &quot;State&quot;))
+
+#I will generally be working with this dataset, which is only truth-o-meter statements
+politifact &lt;- politifact_orig %&gt;%
+  filter(Type == &quot;Truth-O-Meter&quot;)</code></pre>
+<p>This analysis was conducted at 2017-12-28 09:53:56 and only captures statement ratings PolitiFact published before that time. This project should auto-update each time that I re-run the R script.</p>
+<div id="background" class="section level2">
+<h2>Background</h2>
+<pre class="r"><code>page_series &lt;- tibble(contains = str_detect(date, &quot;December 1st, 2008&quot;), 
+                      page_no = 1:length(date))
+page_series &lt;- page_series %&gt;% 
+  filter(contains == TRUE)
+
+see_this_nov_2008 &lt;- max(page_series$page_no)</code></pre>
+<p>According to its website, <a href="www.politifact.com">PolitiFact</a> is a “fact-checking website that rates the accuracy of claims by elected officials and others who speak up in American politics.” The goal of this project is to analyze all of the ratings that PolitiFact has issued since it began in 2007 and to look for trends and other curiosities in the data. Besides strengthening my data analysis and mark-up skills, my motivations for this project have been my admiration of PolitiFact’s non-partisan fact-checking and my own simple curiosity.</p>
+<pre class="r"><code>V_Total_Ratings &lt;- comma_format()(as.integer
+                                  (politifact_orig %&gt;% 
+                                      summarise(Total_Ratings = n())))</code></pre>
+<p>The most recent statements evaluated by PolitiFact appear at this page, (<a href="http://www.politifact.com/truth-o-meter/statements/" class="uri">http://www.politifact.com/truth-o-meter/statements/</a>). As of the date and time I ran this code, <strong>PolitiFact has evaluated a total of 14,150 ratings</strong>. [^1]</p>
+<div id="truth-o-meter-vs.flip-o-meter" class="section level3">
+<h3>Truth-O-Meter vs. Flip-O-Meter</h3>
+<p>On its site, PolitiFact evaluates statements using either its Truth-O-Meter or its Flip-O-Meter system. In short, the Truth-O-Meter is used to evaluate statements for their <strong><em>accuracy</em></strong> (did the speaker say the truth, a falsehood, or something in between?), while the Flip-O-Meter is used to evaluate an official’s <strong><em>consistency</em></strong> on an issue (did they maintain their position, or partly/completely change their stance on a topic?).</p>
+<pre class="r"><code>temp &lt;- politifact_orig %&gt;% 
+  group_by(Type) %&gt;% 
+  summarise(Subtotal = n()) %&gt;%
+  mutate(Proportion = round((Subtotal / sum(Subtotal)) * 100, 1),
+         Subtotal = comma_format()(Subtotal))
+
+V_Flip_O_Meter_n &lt;- temp %&gt;% 
+  filter(Type == &quot;Flip-O-Meter&quot;) %&gt;% 
+  select(Subtotal)
+V_Flip_O_Meter_prop &lt;- temp %&gt;% 
+  filter(Type == &quot;Flip-O-Meter&quot;) %&gt;% 
+  select(Proportion)
+
+V_Truth_O_Meter_n &lt;- temp %&gt;% 
+  filter(Type == &quot;Truth-O-Meter&quot;) %&gt;% 
+  select(Subtotal)
+V_Truth_O_Meter_prop &lt;- temp %&gt;% 
+  filter(Type == &quot;Truth-O-Meter&quot;) %&gt;% 
+  select(Proportion)</code></pre>
+<p>From here on, my analysis will focus only on those statements evaluated by the Truth-O-Meter since they are much more numerous. There are <strong>13,921 (98.4%) Truth-O-Meter Ratings</strong> and 229 (1.6%) Flip-O-Meter Ratings.</p>
+<p>PolitiFact assigns statements one of six possible ratings to Truth-O-Meter Ratings:</p>
+<ul>
+<li><p><strong>TRUE</strong> - The statement is accurate and there’s nothing significant missing.</p></li>
+<li><p><strong>MOSTLY TRUE</strong> - The statement is accurate but needs clarification or additional information.</p></li>
+<li><p><strong>HALF TRUE</strong> - The statement is partially accurate but leaves out important details or takes things out of context.</p></li>
+<li><p><strong>MOSTLY FALSE</strong> - The statement contains an element of truth but ignores critical facts that would give a different impression.</p></li>
+<li><p><strong>FALSE</strong> - The statement is not accurate.</p></li>
+<li><p><strong>PANTS ON FIRE</strong> - The statement is not accurate and makes a ridiculous claim.</p></li>
+</ul>
+<p>For more information on how PolitiFact selects and evaluates statements, see <a href="http://www.politifact.com/truth-o-meter/article/2013/nov/01/principles-politifact-punditfact-and-truth-o-meter/">here</a>.</p>
+</div>
+</div>
+<div id="truth-o-meter-summary-statistics" class="section level2">
+<h2>Truth-O-Meter Summary Statistics</h2>
+<pre class="r"><code>truth_o_meter_ratings &lt;- politifact %&gt;% 
+  rename(Rating = rating) %&gt;%
+  group_by(Rating) %&gt;%
+  summarise(Total_Ratings = n()) %&gt;%
+  mutate(Proportion = Total_Ratings / sum(Total_Ratings))</code></pre>
+<pre class="r"><code>truth_o_meter_colors &lt;- c(&quot;#E40602&quot;, &quot;#E71F28&quot;, &quot;#EE9022&quot;, &quot;#FFD503&quot;, &quot;#C3D52D&quot;, &quot;#71BF44&quot;)
+
+ggplot(truth_o_meter_ratings, aes(x = Rating, y = Proportion, fill = Rating)) +
+  labs(title = &quot;PolitiFact Truth-O-Meter Ratings Since 2017&quot;) +
+  geom_col(color = &quot;black&quot;, size = 1) +
+  geom_label(label = comma_format()(truth_o_meter_ratings$Total_Ratings)) +
+  scale_fill_manual(values = truth_o_meter_colors) +
+  scale_y_continuous(labels = percent) +
+  theme(legend.position = &quot;none&quot;)  </code></pre>
+<p><img src="Code_files/figure-html/Total%20Truth-O-Meter%20Ratings%20Graph-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>V_truthful &lt;- truth_o_meter_ratings %&gt;%
+  filter(Rating == c(&quot;Mostly True&quot;, &quot;True&quot;)) %&gt;%
+  summarise(Proportion = sum(Proportion)) %&gt;%
+  mutate(Proportion = percent_format()(Proportion))
+V_truthful &lt;- as.vector(V_truthful$Proportion)
+
+V_false &lt;- truth_o_meter_ratings %&gt;%
+  filter(Rating == c(&quot;Pants on Fire!&quot;, &quot;False&quot;, &quot;Mostly False&quot;)) %&gt;%
+  summarise(Proportion = sum(Proportion)) %&gt;%
+  mutate(Proportion = percent_format()(Proportion))
+V_false &lt;- as.vector(V_false$Proportion)
+
+V_half_true &lt;- truth_o_meter_ratings %&gt;%
+  mutate(Proportion = percent_format()(Proportion)) %&gt;%
+  filter(Rating == &quot;Half-True&quot;)
+V_half_true &lt;- as.vector(V_half_true$Proportion)  </code></pre>
+<p>If we consider “truths” to be those statements PolitiFact rated as <em>Mostly True</em> or <em>True</em> and “falsehoods” to be those rated as <em>Pants on Fire!</em>, <em>False</em>, or <em>Mostly False</em>, then <strong>34.8% of the total statements rated were <em>truths</em></strong>, <strong>45.2% of the total statements rated were <em>falsehoods</em></strong>, and the remaining <strong>20.0%</strong> statements were <strong><em>Half-True</em></strong> . As such, PolitiFact has rated more statements as falsehoods than as truths; whether this represents a selection bias on PolitiFact’s part or the nature of American political rhetoric is something not possible to say with this data alone.</p>
+<div id="rating-issuer" class="section level3">
+<h3>Rating Issuer</h3>
+<pre class="r"><code>locations &lt;- politifact %&gt;%
+  group_by(source) %&gt;% 
+  mutate(Founded = min(year(date))) %&gt;%
+  group_by(source, Founded, politifact_location) %&gt;%
+  summarise(Total_Ratings = n()) %&gt;% 
+  arrange(-Total_Ratings) %&gt;%
+  ungroup() %&gt;%
+  mutate(Proportion = percent_format()(Total_Ratings / sum(Total_Ratings))) %&gt;%
+  rename(Issuer = source, Type = politifact_location)
+
+locations &lt;- locations %&gt;%
+  add_column(Rank = 1:nrow(locations)) %&gt;%
+  select(Rank, everything())
+
+#Merging in the electoral votes for each state, from https://state.1keydata.com/state-electoral-votes.php
+#don&#39;t forget DC
+electoral_votes &lt;- tribble(
+~US_State,  ~`Electoral Votes`, 
+&quot;Alabama&quot;, 9,
+&quot;Montana&quot;, 3,
+&quot;Alaska&quot;, 3,
+&quot;Nebraska&quot;, 5,
+&quot;Arizona&quot;, 11,
+&quot;Nevada&quot;, 6,
+&quot;Arkansas&quot;, 6,
+&quot;New Hampshire&quot;, 4,
+&quot;California&quot;, 55,
+&quot;New Jersey&quot;, 14,
+&quot;Colorado&quot;, 9,
+&quot;New Mexico&quot;, 5,
+&quot;Connecticut&quot;, 7,
+&quot;New York&quot;, 29,
+&quot;Delaware&quot;, 3,
+&quot;North Carolina&quot;, 15,
+&quot;Florida&quot;, 29,
+&quot;North Dakota&quot;, 3,
+&quot;Georgia&quot;, 16,
+&quot;Ohio&quot;, 18,
+&quot;Hawaii&quot;, 4,
+&quot;Oklahoma&quot;, 7,
+&quot;Idaho&quot;, 4,
+&quot;Oregon&quot;, 7,
+&quot;Illinois&quot;, 20,
+&quot;Pennsylvania&quot;, 20,
+&quot;Indiana&quot;, 11,
+&quot;Rhode Island&quot;, 4,
+&quot;Iowa&quot;, 6,
+&quot;South Carolina&quot;, 9,
+&quot;Kansas&quot;, 6,
+&quot;South Dakota&quot;, 3,
+&quot;Kentucky&quot;, 8,
+&quot;Tennessee&quot;, 11,
+&quot;Louisiana&quot;, 8,
+&quot;Texas&quot;, 38,
+&quot;Maine&quot;, 4,
+&quot;Utah&quot;, 6,
+&quot;Maryland&quot;, 10,
+&quot;Vermont&quot;, 3,
+&quot;Massachusetts&quot;, 11,
+&quot;Virginia&quot;, 13,
+&quot;Michigan&quot;, 16,
+&quot;Washington&quot;, 12,
+&quot;Minnesota&quot;, 10,
+&quot;West Virginia&quot;, 5,
+&quot;Mississippi&quot;, 6,
+&quot;Wisconsin&quot;, 10,
+&quot;Missouri&quot;, 10,
+&quot;Wyoming&quot;, 3,
+&quot;Washington D.C.&quot;, 3)
+
+locations &lt;- 
+  locations %&gt;% 
+  separate(Issuer, c(&quot;A&quot;, &quot;State&quot;), sep = 11, remove = FALSE)
+
+locations &lt;- left_join(locations, electoral_votes, by = c(&quot;State&quot; = &quot;US_State&quot;))%&gt;%
+  select(-A, -State) %&gt;%
+  rename(`Total Ratings` = Total_Ratings) %&gt;%
+  select(everything(), `Electoral Votes`)</code></pre>
+<pre class="r"><code>top_x_issuers &lt;- locations %&gt;% 
+  filter(Proportion &gt;= 1) %&gt;% 
+  mutate(Cumulative_Sum = percent_format()(cumsum(
+    as.numeric(
+      str_replace_all(Proportion, &quot;[[:punct:]]&quot;, &quot;&quot;)) / 1000)))
+
+values &lt;- tibble(rating = levels(politifact$rating)[1:6], value = seq(-3, 2, 1)) %&gt;%
+  mutate(rating = as_factor(rating),
+         rating = fct_relevel(rating, levels(politifact$rating)))
+
+locations_rating &lt;- politifact %&gt;%
+  group_by(source, rating) %&gt;% 
+  summarise(Total_Ratings = n()) 
+
+locations_rating &lt;- left_join(locations_rating, values, by = &quot;rating&quot;) %&gt;%
+  mutate(score = Total_Ratings * value) %&gt;%
+  summarise(Score = round((sum(score) / sum(Total_Ratings)), 3))
+
+one_percent_issuers &lt;- left_join(top_x_issuers, locations_rating, by = c(&quot;Issuer&quot; = &quot;source&quot;)) %&gt;%
+  mutate(Issuer = factor(Issuer), 
+         Issuer = fct_reorder(Issuer, Score)) %&gt;%
+  arrange(Score)
+
+one_percent_issuers &lt;- one_percent_issuers %&gt;%
+  mutate(cut = cut_interval(one_percent_issuers$Score, 12))</code></pre>
+<p>PolitiFact is made up of various “Editions” that focus on different sources for the statements that they will rate. There are a total of 25 editions, which I have grouped into two main categories: “State” Editions that focus on statements made by officials or people in a certain U.S. state (21 such editions) and “Non-State” Editions that do not focus on a a single state (the remaining 4 editions). These 21 State Editions cover states with a total of 345 electoral votes, equal to 64.1% of the total electoral votes available for presidential elections.</p>
+<p>As we see from this table, PolitiFact National was the source for over one-third of the total statements evaluated. This is likely due in part to the fact that it was the earliest edition founded. The other “Not State” editions include PunditFact, which evaluates statements made by political pundits, PolitiFact Global News Service, which evaluates statements made about Health and Development, and PolitiFact NBC, which is a partnership between PolitiFact and NBC.</p>
+<pre class="r"><code>kable(locations, align = c(&quot;l&quot;, &quot;l&quot;, &quot;r&quot;, &quot;r&quot;, &quot;r&quot;, &quot;r&quot;, &quot;r&quot;), 
+      caption = &quot;The Various PolitiFact Editions&quot;)</code></pre>
+<table>
+<caption>The Various PolitiFact Editions</caption>
+<thead>
+<tr class="header">
+<th align="left">Rank</th>
+<th align="left">Issuer</th>
+<th align="right">Founded</th>
+<th align="right">Type</th>
+<th align="right">Total Ratings</th>
+<th align="right">Proportion</th>
+<th align="right">Electoral Votes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="left">PolitiFact National</td>
+<td align="right">2007</td>
+<td align="right">Not State</td>
+<td align="right">4654</td>
+<td align="right">33.4%</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="left">PolitiFact Florida</td>
+<td align="right">2009</td>
+<td align="right">State</td>
+<td align="right">1429</td>
+<td align="right">10.3%</td>
+<td align="right">29</td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="left">PolitiFact Texas</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">1353</td>
+<td align="right">9.7%</td>
+<td align="right">38</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="left">PolitiFact Wisconsin</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">1257</td>
+<td align="right">9.0%</td>
+<td align="right">10</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="left">PunditFact</td>
+<td align="right">2013</td>
+<td align="right">Not State</td>
+<td align="right">934</td>
+<td align="right">6.7%</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">6</td>
+<td align="left">PolitiFact Georgia</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">865</td>
+<td align="right">6.2%</td>
+<td align="right">16</td>
+</tr>
+<tr class="odd">
+<td align="left">7</td>
+<td align="left">PolitiFact Ohio</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">592</td>
+<td align="right">4.3%</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">8</td>
+<td align="left">PolitiFact Rhode Island</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">545</td>
+<td align="right">3.9%</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">9</td>
+<td align="left">PolitiFact Virginia</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">540</td>
+<td align="right">3.9%</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="left">10</td>
+<td align="left">PolitiFact New Jersey</td>
+<td align="right">2011</td>
+<td align="right">State</td>
+<td align="right">391</td>
+<td align="right">2.8%</td>
+<td align="right">14</td>
+</tr>
+<tr class="odd">
+<td align="left">11</td>
+<td align="left">PolitiFact Oregon</td>
+<td align="right">2010</td>
+<td align="right">State</td>
+<td align="right">390</td>
+<td align="right">2.8%</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="left">12</td>
+<td align="left">PolitiFact New Hampshire</td>
+<td align="right">2011</td>
+<td align="right">State</td>
+<td align="right">155</td>
+<td align="right">1.1%</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">13</td>
+<td align="left">PolitiFact California</td>
+<td align="right">2015</td>
+<td align="right">State</td>
+<td align="right">119</td>
+<td align="right">0.9%</td>
+<td align="right">55</td>
+</tr>
+<tr class="even">
+<td align="left">14</td>
+<td align="left">PolitiFact Global News Service</td>
+<td align="right">2016</td>
+<td align="right">Not State</td>
+<td align="right">91</td>
+<td align="right">0.7%</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">15</td>
+<td align="left">PolitiFact Missouri</td>
+<td align="right">2015</td>
+<td align="right">State</td>
+<td align="right">90</td>
+<td align="right">0.6%</td>
+<td align="right">10</td>
+</tr>
+<tr class="even">
+<td align="left">16</td>
+<td align="left">PolitiFact New York</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">87</td>
+<td align="right">0.6%</td>
+<td align="right">29</td>
+</tr>
+<tr class="odd">
+<td align="left">17</td>
+<td align="left">PolitiFact North Carolina</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">87</td>
+<td align="right">0.6%</td>
+<td align="right">15</td>
+</tr>
+<tr class="even">
+<td align="left">18</td>
+<td align="left">PolitiFact Pennsylvania</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">80</td>
+<td align="right">0.6%</td>
+<td align="right">20</td>
+</tr>
+<tr class="odd">
+<td align="left">19</td>
+<td align="left">PolitiFact Tennessee</td>
+<td align="right">2012</td>
+<td align="right">State</td>
+<td align="right">76</td>
+<td align="right">0.5%</td>
+<td align="right">11</td>
+</tr>
+<tr class="even">
+<td align="left">20</td>
+<td align="left">PolitiFact Illinois</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">62</td>
+<td align="right">0.4%</td>
+<td align="right">20</td>
+</tr>
+<tr class="odd">
+<td align="left">21</td>
+<td align="left">PolitiFact Nevada</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">41</td>
+<td align="right">0.3%</td>
+<td align="right">6</td>
+</tr>
+<tr class="even">
+<td align="left">22</td>
+<td align="left">PolitiFact Arizona</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">38</td>
+<td align="right">0.3%</td>
+<td align="right">11</td>
+</tr>
+<tr class="odd">
+<td align="left">23</td>
+<td align="left">PolitiFact Colorado</td>
+<td align="right">2016</td>
+<td align="right">State</td>
+<td align="right">30</td>
+<td align="right">0.2%</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">24</td>
+<td align="left">PolitiFact Iowa</td>
+<td align="right">2015</td>
+<td align="right">State</td>
+<td align="right">12</td>
+<td align="right">0.1%</td>
+<td align="right">6</td>
+</tr>
+<tr class="odd">
+<td align="left">25</td>
+<td align="left">PolitiFact NBC</td>
+<td align="right">2016</td>
+<td align="right">Not State</td>
+<td align="right">3</td>
+<td align="right">0.0%</td>
+<td align="right">NA</td>
+</tr>
+</tbody>
+</table>
+<p>Given that only a subset of all of the PolitiFact Editions are responsible for the vast majority of the statement ratings, I am going to focus on those Editions which individually were responsible for more than 1% of the Truth-O-Meter ratings. These top 12 PolitiFact Editions were cumulatively responsible for 94.1% of the total statements rated.</p>
+<p>Looking at the most important PolitiFact Editions, I have set up a metric to measure the average truthfulness of the statements that they have rated. Any statement that is rated as <em>True</em>, I have assigned a Truthfulness Score of +2. Likewise, any statement that PolitiFact has rated <em>False</em>, I have assigned a Truthfulness value of -2. <em>Mostly True</em>, <em>Half-True</em>, and <em>Mostly False</em> statements thus correspond to scores of +1, 0, and -1 respectively. <em>Pants on Fire!</em> claims are “False” statements that are especially ridiculous, so I have given them a Truthfulness Score of -3 (see Table below).</p>
+<pre class="r"><code>kable(values %&gt;% 
+        rename(`Statement Rating` = rating, `Truthfulness Score` = value) %&gt;%
+        arrange(desc(`Truthfulness Score`)), 
+      caption = &quot;Truthfulness Score per Statement Rating&quot;)</code></pre>
+<table>
+<caption>Truthfulness Score per Statement Rating</caption>
+<thead>
+<tr class="header">
+<th align="left">Statement Rating</th>
+<th align="right">Truthfulness Score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">True</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">Mostly True</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">Half-True</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">Mostly False</td>
+<td align="right">-1</td>
+</tr>
+<tr class="odd">
+<td align="left">False</td>
+<td align="right">-2</td>
+</tr>
+<tr class="even">
+<td align="left">Pants on Fire!</td>
+<td align="right">-3</td>
+</tr>
+</tbody>
+</table>
+<p>Using then the top 12 PolitiFact Editions, I have generated a Mean Truthfulness Score for all of the statements PolitiFact has examined. This number takes the total number of statements by rating (e.g. <em>True</em>, <em>Mostly True</em>, etc.), the Truthfulness Score I have assigned each rating, and then divides the sum of those Truthfulness values by the total number of ratings that each Edition has made. In other words, this metric says “What is the average truthfulness of a statement evaluated by each PolitiFact Edition?”.</p>
+<p>As we see from the graph below, <strong>PunditFact has the lowest average Truthfulness score at -1.128</strong>, which means that the <em>average</em> statement that PunditFact rates is <strong><em>Mostly False</em></strong>. Rounding out the top three, PolitiFact Wisconsin and PolitiFact National were the next Editions with the lowest average Truthfulness Scores. On the other end of the spectrum <strong>PolitiFact Georgia and PolitiFact Ohio were the only Editions who had a positive truthfulness rating</strong>, meaning that the <em>average</em> statement they rated was at least <strong><em>Half-True</em></strong>.</p>
+<pre class="r"><code>ggplot(one_percent_issuers, aes(x = Issuer, y = Score, fill = cut)) +
+  labs(x = &quot;PolitiFact Edition (i.e. who rated the statement?)&quot;, 
+       y = &quot;Average Truthfulness Rating&quot;, 
+       title = &quot;Mean Truthfulness Score by PolitiFact Edition&quot;) +
+  geom_col(color = &quot;black&quot;, size = 1) +
+  geom_label(label = one_percent_issuers$Score) +
+  scale_x_discrete(labels = c(
+    &quot;PolitiFact Wisconsin&quot; = &quot;PolitiFact\n Wisconsin&quot;, 
+    &quot;PolitiFact National&quot; = &quot;PolitiFact\n National&quot;,
+    &quot;PolitiFact Rhode Island&quot; = &quot;PolitiFact\n Rhode Island&quot;,
+    &quot;PolitiFact New Hampshire&quot; = &quot;PolitiFact\n New Hampshire&quot;,
+    &quot;PolitiFact Virginia&quot; = &quot;PolitiFact\n Virginia&quot;,
+    &quot;PolitiFact Texas&quot; = &quot;PolitiFact\n Texas&quot;,
+    &quot;PolitiFact Florida&quot; = &quot;PolitiFact\n Florida&quot;,
+    &quot;PolitiFact Oregon&quot; = &quot;PolitiFact\n Oregon&quot;,
+    &quot;PolitiFact New Jersey&quot; = &quot;PolitiFact\n New Jersey&quot;,
+    &quot;PolitiFact Ohio&quot; = &quot;PolitiFact\n Ohio&quot;,
+    &quot;PolitiFact Georgia&quot; = &quot;PolitiFact\n Georgia&quot;)) +
+  scale_fill_manual(values = c(&quot;#E40602&quot;, &quot;#D0240D&quot;, &quot;#BD4318&quot;, &quot;#AA6223&quot;, &quot;#97812E&quot;, &quot;#84A039&quot;, &quot;#71BF44&quot;)) +
+  theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="Code_files/figure-html/Mean%20Truthfulness%20Score-1.png" width="1008" style="display: block; margin: auto;" /></p>
+</div>
+<div id="ratings-over-time" class="section level3">
+<h3>Ratings Over Time</h3>
+<p>Given that PolitiFact’s provides the date that it has rated each statement, it may be interesting to explore if the relative truthfulness of the statements rated has changed over time. Since mid-2010, PolitiFact has generally issued about 3-4 statement ratings per day. In the below graph, I have taken the Mean Truthfulness Score for all of the statements that PolitiFact has evaluated each month (excluding months where PolitiFact rated fewer than 30 statements) and a smooth line to estimate the average Mean Truthfulness Score over time.</p>
+<p>Some interesting trends present themselves.</p>
+<pre class="r"><code>avg_score_all &lt;- politifact %&gt;%
+  group_by(rating) %&gt;%
+  summarise(n = n())
+
+avg_score_all &lt;- left_join(avg_score_all, values, by = c(&quot;rating&quot; = &quot;rating&quot;)) %&gt;%
+  mutate(score = value * n) %&gt;%
+  summarise(avg_value = sum(score) / sum(n)) #The average score for PolitiFact Truth-O-Meter&#39;s history</code></pre>
+<ol style="list-style-type: decimal">
+<li>The Mean Truthfulness Score for each month is generally negative (the overall rating for all statements PolitiFact has rated was -0.33). There were only two occasions where the Mean Truthfulness Score was notably positive for a few months in a row: September and October of 2007 (early in PolitiFact’s rating history) and around December 2012 / January 2013. To a smaller extent, this same positive blip also occurred in December 2014 / January 2015. Maybe the PolitiFact staff around the holiday season join in the spirit of giving by becoming more generous with their ratings?<br />
+</li>
+<li>I had thought that the presidential campaign season, which for the sake of argument I have set as one-year prior to the presidential election, would have seen several months with particularly low Mean Truthfulness Scores. My thinking was that close to the presidential election season, we would see politicians lying a lot more at the last minute to get elected. At least from this graph, these factors appear to be uncorrelated, though that may be due to the fact that there are not many presidential candidates per election and the number of them decreases as the election date approaches.</li>
+</ol>
+<pre class="r"><code>year_score_all_pre_na &lt;- politifact %&gt;% 
+  mutate(revised_date = date) 
+day(year_score_all_pre_na$revised_date) &lt;- 1 #Setting all the days to day = 1 so that way they&#39;re grouped by month
+
+year_score_all_pre_na &lt;- year_score_all_pre_na %&gt;%
+  group_by(revised_date, rating) %&gt;%
+  summarise(n = n())
+
+year_score_all_pre_na &lt;- left_join(year_score_all_pre_na, values, by = c(&quot;rating&quot; = &quot;rating&quot;)) %&gt;%
+  ungroup() %&gt;%
+  mutate(Score = n * value) %&gt;%
+  group_by(revised_date) %&gt;%
+  summarise(Score = round((sum(Score) / sum(n)), 3),
+            Total_Ratings = sum(n))
+
+year_score_all &lt;- year_score_all_pre_na %&gt;%
+  mutate(Score = ifelse(Total_Ratings &lt; 30, NA, Score)) %&gt;% #Only dealing with those with more than 30+ ratings a month
+  separate(revised_date, into = c(&quot;Year&quot;, &quot;Month&quot;, &quot;Junk&quot;), remove = FALSE) %&gt;%
+  mutate(Month = str_replace_all(Month, c(&quot;01&quot; = &quot;Jan&quot;, &quot;02&quot; = &quot;Feb&quot;, &quot;03&quot; = &quot;Mar&quot;,
+                                          &quot;04&quot; = &quot;Apr&quot;, &quot;05&quot; = &quot;May&quot;, &quot;06&quot; = &quot;Jun&quot;,
+                                          &quot;07&quot; = &quot;Jul&quot;, &quot;08&quot; = &quot;Aug&quot;, &quot;09&quot; = &quot;Sep&quot;,
+                                          &quot;10&quot; = &quot;Oct&quot;, &quot;11&quot; = &quot;Nov&quot;, &quot;12&quot; = &quot;Dec&quot;))) %&gt;%
+  unite(Label, Month, Year, sep = &quot; &quot;) %&gt;%
+  select(-Junk)</code></pre>
+<pre class="r"><code>lowest_score_ever &lt;- min(year_score_all$Score, na.rm = TRUE)
+worst_month &lt;- year_score_all %&gt;% 
+  filter(Score == lowest_score_ever) %&gt;%
+  mutate(Label = str_replace_all(Label, c(&quot;Jan&quot; = &quot;January&quot;, &quot;Feb&quot; = &quot;February&quot;, &quot;Mar&quot; = &quot;March&quot;,
+                           &quot;Apr&quot; = &quot;April&quot;, &quot;May&quot; = &quot;May&quot;, &quot;Jun&quot; = &quot;June&quot;, &quot;Jul&quot; = &quot;July&quot;,
+                           &quot;Aug&quot; = &quot;August&quot;,&quot;Sep&quot; = &quot;September&quot;, &quot;Oct&quot; = &quot;October&quot;, 
+                           &quot;Nov&quot; = &quot;November&quot;, &quot;Dec&quot; = &quot;December&quot;)))</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>The Mean Truthfulness Score for each month has become remarkably negative since April 2017, with the <strong>record low in December 2017 at -1.338</strong> as you can see in the graph below. Each month since April (except October) has broken the previously low record set in August 2009. Why is this so? Some possible ideas may be:
+<ol style="list-style-type: lower-roman">
+<li><a href="http://www.people-press.org/interactives/political-polarization-1994-2017/">Increased political polarization</a> whereby politics has gotten to the point where candidates will say anything to win<br />
+</li>
+<li>An artefact of the <a href="https://www.economist.com/news/briefing/21706498-dishonesty-politics-nothing-new-manner-which-some-politicians-now-lie-and">post-truth</a> era some pundits think we have entered into?<br />
+</li>
+<li>Donald Trump and his notoriety for telling falsehoods<br />
+</li>
+<li>Or is there some other explanation?</li>
+</ol></li>
+</ol>
+<pre class="r"><code>ggplot(year_score_all %&gt;% slice(5:nrow(year_score_all)), #Lop off the first 4 rows because they&#39;re NA
+       aes(x = revised_date + 15, y = Score, fill = Score)) + #Add 15 days to each month so they align better
+  geom_rect(xmin = ymd(&quot;2016-Nov-8&quot;) - 365, xmax = ymd(&quot;2016-Nov-8&quot;),
+            ymin = -3, ymax = 2, fill = &quot;gray75&quot;, color = &quot;black&quot;, linetype = &quot;dashed&quot;, size = .8) +
+  geom_rect(xmin = ymd(&quot;2012-Nov-6&quot;) - 365, xmax = ymd(&quot;2012-Nov-6&quot;),
+            ymin = -3, ymax = 2, fill = &quot;gray75&quot;, color = &quot;black&quot;, linetype = &quot;dashed&quot;, size = .8) +
+  geom_rect(xmin = ymd(&quot;2008-Nov-4&quot;) - 365, xmax = ymd(&quot;2008-Nov-4&quot;),
+            ymin = -3, ymax = 2, fill = &quot;gray75&quot;, color = &quot;black&quot;, linetype = &quot;dashed&quot;, size = .8) +
+  geom_col(color = &quot;black&quot;, size = 1) +
+  geom_smooth(size = 1.7, color = &quot;royalblue4&quot;, se = FALSE) +
+  scale_x_date(date_breaks = &quot;1 year&quot;, date_labels = &quot;%Y&quot;) +
+  scale_y_continuous(breaks = seq(-1.5, 0.5, 0.25)) +
+  scale_fill_continuous(low =  &quot;#E40602&quot;, high = &quot;#71BF44&quot;) +
+  theme(legend.position = &quot;none&quot;,
+        axis.text.x = element_text(size = 12), 
+        axis.text.y = element_text(size = 10)) +
+  labs(x = &quot;&quot;, 
+       title = &quot;PolitiFact Mean Truthfulness Score per Month&quot;,
+       subtitle = &quot;Only months with 30 or more ratings are included. Shaded areas indicate the 12 months prior to a U.S. presidential election&quot;) +
+  geom_point(data = worst_month, aes(x = revised_date + 15, y = Score - .10),
+             size = 5, color = &quot;black&quot;, fill = &quot;red&quot;, shape = 24, stroke = 2,
+             inherit.aes = FALSE) +
+  geom_text(data = worst_month, aes(x = revised_date + 15, y = Score - .2),
+            label = &quot;Minimum&quot;, inherit.aes = FALSE, color = &quot;black&quot;, fontface = &quot;bold&quot;)</code></pre>
+<p><img src="Code_files/figure-html/Avg.%20Score%20by%20Month%20Graph-1.png" width="1152" style="display: block; margin: auto;" /> Given how quickly PolitiFact’s monthly Mean Truthfulness Score becomes very negative after the 2016 presidenital election, I decided to separate the ratings into three mutually exclusive categories to figure out why:</p>
+<ol style="list-style-type: decimal">
+<li>I flagged as <strong>Website</strong> any rating made by an entity ending in <em>.com</em>, <em>.net</em>, <em>.org</em>, <em>.us</em>, <em>.edu</em>, <em>.gov</em> or that had the word <em>email</em>, <em>facebook</em>, <em>blog</em>, <em>tweet</em>, <em>online</em>, or <em>image</em> in its name.<br />
+</li>
+<li>I flagged as <strong>Trump</strong> any rating made by <em>Donald Trump</em>.<br />
+</li>
+<li>I flagged all other ratings as <strong>Other</strong>.</li>
+</ol>
+<p>I took the <em>subtotal</em> Mean Truthfulness values for these three statement categories and divided by the total number of ratings issued each month by PolitiFact. These steps allows me to determine what each of the three categories contributed to PolitiFact’s total Mean Truthfulness Score for each month.</p>
+<pre class="r"><code>trump_web_other &lt;- politifact %&gt;% 
+  mutate(analysis = NA)
+trump_web_other &lt;- politifact %&gt;% 
+  mutate(analysis = ifelse(website == TRUE, &quot;Website&quot;, NA), 
+         analysis = ifelse(name == &quot;Donald Trump&quot;, &quot;Trump&quot;, analysis),
+         analysis = ifelse(is.na(analysis), &quot;Other&quot;, analysis))
+
+trump_web_analysis &lt;- trump_web_other %&gt;% 
+  mutate(revised_date = date) 
+day(trump_web_analysis$revised_date) &lt;- 1 #Setting all the days to day = 1 so that way they&#39;re grouped by month
+
+trump_web_analysis &lt;- trump_web_analysis %&gt;%
+  group_by(revised_date, rating, analysis) %&gt;%
+  summarise(n = n()) 
+
+trump_web_analysis &lt;- left_join(trump_web_analysis, values, by = c(&quot;rating&quot; = &quot;rating&quot;)) %&gt;%
+  ungroup() %&gt;%
+  mutate(Score = n * value) %&gt;%
+  group_by(revised_date, analysis) %&gt;%
+  summarise(subtotal = sum(Score),
+            Subtotal_Ratings = sum(n))
+
+trump_web_analysis &lt;- left_join(trump_web_analysis, year_score_all_pre_na) %&gt;%
+  mutate(Sub_Score = round(subtotal / Total_Ratings, 3)) 
+trump_web_analysis &lt;- trump_web_analysis[c(1:4, 7, 5:6)] #Reordering columns
+
+trump_web_analysis &lt;- trump_web_analysis %&gt;%
+  mutate(Score = ifelse(Total_Ratings &lt; 5, NA, Score)) %&gt;% #Only dealing with those with more than 30+ ratings a month
+  separate(revised_date, into = c(&quot;Year&quot;, &quot;Month&quot;, &quot;Junk&quot;), remove = FALSE) %&gt;%
+  mutate(Month = str_replace_all(Month, c(&quot;01&quot; = &quot;Jan&quot;, &quot;02&quot; = &quot;Feb&quot;, &quot;03&quot; = &quot;Mar&quot;,
+                                          &quot;04&quot; = &quot;Apr&quot;, &quot;05&quot; = &quot;May&quot;, &quot;06&quot; = &quot;Jun&quot;,
+                                          &quot;07&quot; = &quot;Jul&quot;, &quot;08&quot; = &quot;Aug&quot;, &quot;09&quot; = &quot;Sep&quot;,
+                                          &quot;10&quot; = &quot;Oct&quot;, &quot;11&quot; = &quot;Nov&quot;, &quot;12&quot; = &quot;Dec&quot;))) %&gt;%
+  unite(Label, Month, Year, sep = &quot; &quot;) %&gt;%
+  select(-Junk)
+
+website_contribution_worst &lt;- trump_web_analysis %&gt;% 
+  filter(revised_date %in% worst_month$revised_date, 
+         analysis == &quot;Website&quot;) %&gt;%
+  mutate(percentage = Sub_Score / Score)
+trump_contribution_worst &lt;- trump_web_analysis %&gt;% 
+  filter(revised_date %in% worst_month$revised_date, 
+         analysis == &quot;Trump&quot;) %&gt;%
+  mutate(percentage = Sub_Score / Score)
+other_contribution_worst &lt;- trump_web_analysis %&gt;% 
+  filter(revised_date %in% worst_month$revised_date, 
+         analysis == &quot;Other&quot;) %&gt;%
+  mutate(percentage = Sub_Score / Score)</code></pre>
+<p>For example, in December 2017 for all of PolitiFact there were 74 total statements rated with a Mean Truthfulness Score of <strong>-1.338</strong>. This value correlates to the average statement being at least <em>Mostly False</em>, and this month has the lowest Mean Truthfulness Score since PolitiFact was founded as you can again see in the graph below. Of that -1.338 Mean Truthfulness Score:</p>
+<ul>
+<li>With 13 statements rated, <strong>Websites</strong> contributed -0.486 to this month’s Mean Truthfulness Score, equal to <strong>36.3%</strong> of it<br />
+</li>
+<li>With 7 statements rated, <strong>Donald Trump</strong> contributed -0.122 to this month’s Mean Truthfulness Score, equal to <strong>9.12%</strong> of it<br />
+</li>
+<li>And the remaining 54 statements rated contributed -0.73 to this month’s Mean Truthfulness Score, equal to the remaining <strong>54.6%</strong> of it</li>
+</ul>
+<pre class="r"><code>first_website &lt;- politifact %&gt;% 
+  filter(website == TRUE) %&gt;% 
+  filter(date == min(date))
+
+websites_by_month &lt;- trump_web_analysis %&gt;% 
+  filter(analysis == &quot;Website&quot;, 
+         revised_date &gt;= first_website$date[[1]]) %&gt;% 
+  mutate(pre_dec_2016 = ifelse(revised_date &lt; &quot;2016-12-01&quot;, &quot;PRE&quot;, &quot;POST&quot;)) %&gt;% 
+  group_by(pre_dec_2016) %&gt;% 
+  summarise(avg_per_month = round(sum(Subtotal_Ratings) / n(), 1), 
+            months = n(), 
+            avg_rating = round(sum(subtotal) / sum(Subtotal_Ratings), 3))</code></pre>
+<p>Since December 2016, ratings of statements made by websites have been the single largest contributor to the highly negative Mean Truthfulness Scores of late. This coincides with the <a href="http://www.politifact.com/truth-o-meter/article/2017/dec/15/we-started-fact-checking-partnership-facebook-year/">founding of PolitiFact’s partnership with Facebook</a> to fact-check claims made on the social media site, and likely represents a push overall to rate the accuracy of more claims made online. [^2] Since December 2016, PolitiFact has rated an average of 19.2 statements made online per month and these statements have an average rating of -2.772, which is closest to <strong><em>Pants on Fire!</em></strong>. Prior to December 2016, PolitiFact only rated an average of 4.2 statements from websites per month, and with an average rating of -1.786 these ratings were closer to <strong><em>False</em></strong>.</p>
+<pre class="r"><code>ggplot(trump_web_analysis %&gt;% filter(revised_date &gt;= mdy(&quot;January 1, 2014&quot;)), 
+       aes(x = revised_date + 15, y = Sub_Score, fill = analysis, 
+           color = analysis, group = analysis)) + #Add 15 days to each month so they align better
+  geom_rect(xmin = ymd(&quot;2016-Nov-8&quot;) - 365, xmax = ymd(&quot;2016-Nov-8&quot;),
+            ymin = -3, ymax = 2, fill = &quot;gray75&quot;, color = &quot;black&quot;, linetype = &quot;dashed&quot;, size = .8) +
+  geom_col(color = &quot;black&quot;, size = 1) +
+  scale_x_date(date_breaks = &quot;1 year&quot;, date_labels = &quot;%Y&quot;) +
+  scale_fill_manual(&quot;&quot;, values = c(&quot;Website&quot; = &quot;#c118ec&quot;, &quot;Trump&quot; = &quot;#ffb00a&quot;, &quot;Other&quot; = &quot;#808080&quot;),
+                    position = &quot;bottom&quot;) +
+  scale_y_continuous(breaks = seq(-1.25, 0.5, 0.25)) +
+  labs(title = &quot;PolitiFact Mean Truthfulness Score per Month, 2014 - Present&quot;,
+       x = &quot;&quot;, y = &quot;Monthly Average&quot;, 
+       subtitle = &quot;Shaded area indicates 12 months prior to the November 8, 2016 presidential election. Mean Truthfulness Scores are additive for Donald Trump, Websites, and Other.&quot;) +
+  theme(legend.position = &quot;bottom&quot;, 
+        legend.box.margin = margin(t = -20), 
+        axis.text.x = element_text(size = 12), 
+        axis.text.y = element_text(size = 10)) +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  geom_point(data = worst_month, aes(x = revised_date + 15, y = Score - .10),
+             size = 5, color = &quot;black&quot;, fill = &quot;red&quot;, shape = 24, stroke = 2,
+             inherit.aes = FALSE) +
+  geom_text(data = worst_month, aes(x = revised_date + 15, y = Score - .2),
+            label = &quot;Minimum&quot;, inherit.aes = FALSE, color = &quot;black&quot;, fontface = &quot;bold&quot;)</code></pre>
+<p><img src="Code_files/figure-html/Trump/Websites/All%20Other%20Plot-1.png" width="1008" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="subject" class="section level2">
+<h2>Subject</h2>
+<pre class="r"><code># Topics#######
+
+webpage &lt;- read_html(&quot;http://www.politifact.com/subjects/&quot;)
+
+#This gets the list of topics that PolitiFact&#39;s ratings pertain to
+#I get the attributes, or the hyperlink from each of those topics to be able to scrape them
+topics &lt;- vector(&quot;list&quot;, length = 152)
+for(i in seq_along(1:152)) {
+  topics[[i]] &lt;- html_attrs(
+      html_nodes(webpage, &quot;.az-list__item a&quot;))[[i]][[1]]
+}
+
+combined_topics &lt;- as_tibble(do.call(&quot;rbind&quot;, topics)) #Hyperlink to each topic
+
+combined_topic_names &lt;- as_tibble(      #Topic Name (Human-speak) for merging later
+  html_text(
+    html_nodes(webpage, &quot;.az-list__item a&quot;)))
+
+scorecard &lt;- vector(&quot;list&quot;, length(topics))
+count &lt;- vector(&quot;list&quot;, length(topics))
+
+for(i in seq_along(topics)) {
+  webpage &lt;- read_html(str_c(&quot;http://www.politifact.com&quot;, 
+                             combined_topics[[1]][[i]]))
+  
+  topics_scrape &lt;- function(x) {
+    as_tibble(
+      html_text(
+        html_nodes(webpage, x)))
+  }
+  
+  scorecard[[i]] &lt;- topics_scrape(&#39;.chartlist__label :nth-child(1)&#39;) %&gt;%
+    add_column(combined_topic_names$value[[i]]) #Adding the topic column
+  colnames(scorecard[[i]]) &lt;- c(&quot;scorecard&quot;, &quot;topic&quot;) #Changing the column name to be able to bind
+  
+  count[[i]] &lt;- topics_scrape(&#39;.chartlist__count&#39;) %&gt;%
+    add_column(combined_topic_names$value[[i]])
+  colnames(count[[i]]) &lt;- c(&quot;count&quot;, &quot;topic&quot;)
+  
+  Sys.sleep(time = 2) #Sleepy sleepy
+}
+
+(combined_scorecard &lt;- do.call(&quot;rbind&quot;, scorecard))
+(combined_count &lt;- do.call(&quot;rbind&quot;, count))
+
+total_topics &lt;- bind_cols(combined_scorecard, combined_count) %&gt;%
+  mutate(count = as.integer(
+                    str_extract(count, &quot;\\d{1,4}&quot;)),
+         topic = str_replace_all(topic, &quot;^\\s|\\s$&quot;, &quot;&quot;)) %&gt;%
+  select(-topic1)
+
+combined_topic_names &lt;- combined_topic_names %&gt;%
+  mutate(str_replace_all(value, &quot;^\\s|\\s$&quot;, &quot;&quot;))</code></pre>
+<pre class="r"><code>total_topics &lt;- total_topics %&gt;%
+  mutate(scorecard = str_replace_all(scorecard, c(&quot;Half True&quot; = &quot;Half-True&quot;, &quot;Pants on Fire$&quot; = &quot;Pants on Fire!&quot;)))
+
+total_topic_ratings &lt;- left_join(total_topics, values, by = c(&quot;scorecard&quot; = &quot;rating&quot;)) %&gt;%
+  mutate(Score = value * count) %&gt;%
+  group_by(topic)
+
+total_topic_summary &lt;- total_topic_ratings %&gt;%
+  summarise(total_ratings = sum(count),
+            total_score = sum(Score)) %&gt;%
+  mutate(Avg_Score = total_score / total_ratings) %&gt;% 
+  mutate(Pos_Neg = ifelse(Avg_Score &gt;= 0, &quot;Positive&quot;, &quot;Negative&quot;))
+
+table_of_topics &lt;- total_topic_summary %&gt;%
+  filter(rank(desc(total_ratings)) &lt; 11) %&gt;% 
+  arrange(desc(total_ratings)) %&gt;%
+  mutate(`Mean Truthfulness Score` = round(Avg_Score, 3),
+         `Total Ratings` = comma_format()(total_ratings)) %&gt;%
+  rename(Subject = topic) %&gt;%
+  mutate(Rank = 1:10) %&gt;% 
+  select(Rank, Subject, `Total Ratings`, `Mean Truthfulness Score`) </code></pre>
+<p>PolitiFact groups together many of the statements it rates by the subject that statement addresses (e.g. Abortion, Patriotism, Obama Birth Certificate, etc.) <a href="http://www.politifact.com/subjects/">here</a>. PolitiFact also notes the frequency with which it assigns its six ratings (i.e. <em>True</em>, <em>Mostly True</em>, <em>Half-True</em>, <em>Mostly False</em>, <em>False</em>, and <em>Pants on Fire!</em>) to statements in each subject. Currently there are 149 different subjects. The most frequently discussed subjects and their Mean Truthfulness Scores are below:</p>
+<pre class="r"><code>kable(table_of_topics, align = c(&quot;c&quot;, &quot;l&quot;, &quot;r&quot;, &quot;r&quot;), 
+      caption = &quot;Most Discussed Subjects in PolitiFact Ratings&quot;)</code></pre>
+<table>
+<caption>Most Discussed Subjects in PolitiFact Ratings</caption>
+<thead>
+<tr class="header">
+<th align="center">Rank</th>
+<th align="left">Subject</th>
+<th align="right">Total Ratings</th>
+<th align="right">Mean Truthfulness Score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">1</td>
+<td align="left">Health Care</td>
+<td align="right">1,580</td>
+<td align="right">-0.582</td>
+</tr>
+<tr class="even">
+<td align="center">2</td>
+<td align="left">Economy</td>
+<td align="right">1,505</td>
+<td align="right">-0.069</td>
+</tr>
+<tr class="odd">
+<td align="center">3</td>
+<td align="left">Taxes</td>
+<td align="right">1,337</td>
+<td align="right">-0.276</td>
+</tr>
+<tr class="even">
+<td align="center">4</td>
+<td align="left">Education</td>
+<td align="right">996</td>
+<td align="right">-0.102</td>
+</tr>
+<tr class="odd">
+<td align="center">5</td>
+<td align="left">Jobs</td>
+<td align="right">961</td>
+<td align="right">-0.168</td>
+</tr>
+<tr class="even">
+<td align="center">6</td>
+<td align="left">Federal Budget</td>
+<td align="right">956</td>
+<td align="right">-0.168</td>
+</tr>
+<tr class="odd">
+<td align="center">7</td>
+<td align="left">State Budget</td>
+<td align="right">920</td>
+<td align="right">-0.216</td>
+</tr>
+<tr class="even">
+<td align="center">8</td>
+<td align="left">Candidate Biography</td>
+<td align="right">827</td>
+<td align="right">-0.480</td>
+</tr>
+<tr class="odd">
+<td align="center">9</td>
+<td align="left">Elections</td>
+<td align="right">821</td>
+<td align="right">-0.311</td>
+</tr>
+<tr class="even">
+<td align="center">10</td>
+<td align="left">Immigration</td>
+<td align="right">746</td>
+<td align="right">-0.501</td>
+</tr>
+</tbody>
+</table>
+<p>Looking at the most truthfully discussed and most falsely discussed subjects, it comes as no surprise that topics such as “Fake news” and <a href="https://obamawhitehouse.archives.gov/sites/default/files/rss_viewer/birth-certificate-long-form.pdf">Obama’s Birth Certificate</a> have very negative Mean Truthfulness Scores. I leave it to others to ponder why topics such as “Population”, “Redistricting”, and “Gambling” are more truthfully discussed. I believe part of it has to do with uneven statement sampling.</p>
+<pre class="r"><code>top_10 &lt;- total_topic_summary %&gt;% 
+  filter(total_ratings &gt;= 30) %&gt;%
+  filter(rank(desc(Avg_Score)) &lt; 11) %&gt;% 
+  arrange(desc(Avg_Score)) 
+
+bottom_10 &lt;- total_topic_summary %&gt;% 
+  filter(total_ratings &gt;= 30) %&gt;%
+  filter(rank(Avg_Score) &lt; 11) %&gt;% 
+  arrange(Avg_Score) 
+
+both_10s &lt;- bind_rows(top_10, bottom_10) %&gt;%
+  mutate(topic = as_factor(topic),
+         topic = fct_reorder(topic, Avg_Score))</code></pre>
+<pre class="r"><code>ggplot(both_10s, aes(x = topic, y = Avg_Score, fill = Pos_Neg)) +
+  geom_col(size = 1, color = &quot;black&quot;) +
+  geom_vline(xintercept = 10.5, size = 1.5, linetype = &quot;twodash&quot;) +
+  coord_flip() +
+  scale_fill_manual(values = c(&quot;Positive&quot; = &quot;#71BF44&quot;, &quot;Negative&quot; = &quot;#E40602&quot;)) +
+  theme(legend.position = &quot;none&quot;,
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 12)) +
+  labs(x = &quot;&quot;, y = &quot;Mean Truthfulness Score&quot;, 
+       title = &quot;Top 10 Most Truthfully Discussed and Most Falsely Discussed Truth-O-Meter Subjects&quot;,
+       subtitle = &quot;Only subjects with at least 30 rated statements are included.&quot;) +
+  scale_y_continuous(limits = c(-3, 0.5), breaks = c(-3:0, 0.5))</code></pre>
+<p><img src="Code_files/figure-html/Best/Worst%20Topics%20Graph-1.png" width="1008" style="display: block; margin: auto;" /></p>
+</div>
+<div id="individuals" class="section level2">
+<h2>Individuals</h2>
+<pre class="r"><code># Senators and Representatives: ###############
+# This includes Congressional Sessions 109-115 (i.e. 2007-2008 to 2017-2018) in order to capture when PolitiFact 
+# started on their ratings
+individual &lt;- vector(&quot;list&quot;, 10)
+expanded_info &lt;- vector(&quot;list&quot;, 10)
+
+for(i in seq_along(1:10)) {
+webpage &lt;- read_html(str_c(&quot;https://www.congress.gov/members?q=%7B%22congress%22%3A%5B%22110%22%2C%22111%22%2C%22112%22%2C%22113%22%2C%22114%22%2C%22115%22%5D%7D&quot;,
+                 &quot;&amp;page=&quot;, i))
+
+politifact_scrape &lt;- function(x) {
+  as_tibble(
+    html_text(
+      html_nodes(webpage, x))) 
+}
+
+individual[[i]] &lt;- politifact_scrape(&quot;.result-heading a&quot;)
+expanded_info[[i]] &lt;- politifact_scrape(&quot;.expanded&quot;)
+
+Sys.sleep(time = 2)
+}
+
+combined_rep_names &lt;- unique(do.call(&quot;rbind&quot;, individual)) #It was duplicating the names for some reason
+combined_expanded_info &lt;- do.call(&quot;rbind&quot;, expanded_info)
+
+congress &lt;- bind_cols(combined_rep_names, combined_expanded_info)
+congress &lt;- congress %&gt;% 
+  rename(Individual = value, Information = value1) %&gt;%
+  mutate(Individual = str_replace(Individual, &quot;[[:alpha:]]*\\s&quot;, &quot;&quot;),
+         State = str_extract(Information, &quot;(?&lt;=State:[[:space:]]{1,100})[[:alpha:]]+\\s*[[:alpha:]]+(?=\\r)&quot;),
+         Party = str_extract(Information, &quot;(?&lt;=Party:[[:space:]]{1,100})[[:alpha:]]+\\s*[[:alpha:]]+(?=\\r)&quot;),
+         Served = str_extract(Information, &quot;(?&lt;=Served:[[:space:]]{1,100})[[:alpha:]]+:.*(?=[[:space:]])&quot;)) %&gt;%
+  separate(col = Individual, into = c(&quot;Last Name&quot;, &quot;First Name&quot;), sep = &quot;\\,\\s&quot;) %&gt;%
+  select(-Information) %&gt;%
+  unite(col = Individual, `First Name`, `Last Name`, sep = &quot; &quot;, remove = TRUE)</code></pre>
+<pre class="r"><code>current_governors &lt;- read_csv(&quot;D:/Everything/R/Politifact Investigation/tabula-Current Governors List.csv&quot;, skip = 3, col_names = FALSE) #This came from
+#running Tabula on this pdf https://www.nga.org/files/live/sites/NGA/files/pdf/directories/GovernorsList.pdf
+not_states &lt;- tibble(x = c(&quot;American Samoa&quot;, &quot;Guam&quot;, &quot;Northern Mariana Is.&quot;, &quot;Puerto Rico&quot;, &quot;Virgin Islands&quot;)) #Taxation without Representation
+
+current_governors &lt;- current_governors %&gt;% 
+  rename(State = X1, Governor = X2, Term = X4) %&gt;%
+  separate(col = Governor, into = c(&quot;Governor&quot;, &quot;Party&quot;), sep = &quot;\\(&quot;) %&gt;%
+  mutate(Party = str_replace_all(Party, &quot;[[:punct:]]&quot;, &quot;&quot;), 
+         Term = str_replace_all(Term, &quot;(?&lt;=-\\d{2}).*$&quot;, &quot;&quot;), 
+         Status = &quot;Current&quot;) %&gt;%
+  filter(!State %in% not_states$x) %&gt;%
+  select(State, Governor, Party, Term, Status) 
+
+
+former_govs &lt;- read_csv(&quot;D:/Everything/R/Politifact Investigation/Former Governors Copied.csv&quot;) #I hade to copy this manually from
+# https://en.wikipedia.org/wiki/List_of_living_former_United_States_Governors into a csv
+
+former_govs &lt;- former_govs %&gt;%
+  filter(!is.na(Governor),
+         Governor != &quot;Governor&quot;) %&gt;%
+  rename(Term = `Term(s)`) %&gt;%
+  mutate(Party = str_replace_all(Party, &quot;\\w*,&quot;, &quot;&quot;), 
+         Party = str_extract(Party, &quot;Democratic|Republican&quot;),   # Only taking their later political stance
+         Status = &quot;Former&quot;) %&gt;%
+  select(State, Governor, Party, Term, Status)
+
+governors &lt;- as_tibble(bind_rows(current_governors, former_govs))</code></pre>
+<pre class="r"><code>webpage &lt;- read_html(&quot;https://www.nytimes.com/interactive/2016/us/elections/2016-presidential-candidates.html?_r=0&quot;)
+politifact_scrape &lt;- function(x) {
+  as_tibble(
+    html_text(
+      html_nodes(webpage, x))) 
+}
+Prez_Cand_2016 &lt;- politifact_scrape(&quot;.g-profile .g-name&quot;)
+Prez_Cand_2016 &lt;- Prez_Cand_2016 %&gt;%
+  separate(value, into = c(&quot;Candidate&quot;, &quot;Party&quot;), sep = -2) %&gt;%
+  mutate(Party = str_replace_all(Party, c(&quot;d$&quot; = &quot;Democratic&quot;, &quot;r$&quot; = &quot;Republican&quot;)),
+         Affiliation = &quot;Presidential Candidate&quot;, 
+         Time = 2016)
+
+Prez_Cand_2012 &lt;- tibble(Candidate = c(&quot;Mitt Romney&quot;, &quot;Rick Santorum&quot;, &quot;Ron Paul&quot;, &quot;Newt Gingrich&quot;, &quot;Herman Cain&quot;),
+                         Party = rep(&quot;Republican&quot;, 5)) %&gt;% #from https://en.wikipedia.org/wiki/Republican_Party_presidential_primaries,_2012
+  mutate(Affiliation = &quot;Presidential Candidate&quot;,
+         Time = 2012)
+
+webpage &lt;- read_html(&quot;https://www.nytimes.com/elections/2008/primaries/candidates/index.html&quot;)
+Prez_Cand_2008_D &lt;- politifact_scrape(&#39;#not_running+ .o8column .o8name a&#39;)
+Prez_Cand_2008_D &lt;- Prez_Cand_2008_D %&gt;%
+  mutate(Party = &quot;Democratic&quot;)
+
+Prez_Cand_2008_R &lt;- politifact_scrape(&#39;.o8column+ .o8column .o8out .o8name a&#39;) 
+Prez_Cand_2008_R &lt;- Prez_Cand_2008_R %&gt;%
+  mutate(Party = &quot;Republican&quot;)
+
+Prez_Cand_2008 &lt;- bind_rows(Prez_Cand_2008_D, Prez_Cand_2008_R) %&gt;%
+  rename(Candidate = value) %&gt;%
+  mutate(Affiliation = &quot;Presidential Candidate&quot;,
+         Time = 2008)</code></pre>
+<pre class="r"><code>presidential_candidates &lt;- bind_rows(Prez_Cand_2008, Prez_Cand_2012, Prez_Cand_2016) %&gt;%
+  rename(Person = Candidate) %&gt;%
+  mutate(Time = as.character(Time))
+
+governors &lt;- governors %&gt;%
+  rename(Person = Governor, 
+         Time = Term, 
+         Affiliation = Status) %&gt;%
+  mutate(Party = str_replace_all(Party, c(&quot;R$&quot; = &quot;Republican&quot;, &quot;D$&quot; = &quot;Democratic&quot;,
+                                          &quot;I$&quot; = &quot;Independent&quot;)),
+         Affiliation = str_c(Affiliation, &quot;Governor&quot;, sep = &quot; &quot;)) %&gt;%
+  unite(col = Affiliation, Affiliation, State, sep = &quot; &quot;, remove = TRUE) %&gt;%
+  select(Person, Party, Affiliation, Time)
+
+congress &lt;- congress %&gt;% 
+  rename(Person = Individual, Time = Served, Affiliation = State) %&gt;%
+  mutate(Affiliation = str_c(Affiliation, &quot; Congress&quot;))
+
+individuals &lt;- bind_rows(governors, congress, presidential_candidates) %&gt;%
+  mutate(Person = str_replace_all(Person, &quot;^ | $&quot;, &quot;&quot;),
+         Person = str_replace_all(Person, c(&quot;Hillary Rodham Clinton&quot; = &quot;Hillary Clinton&quot;,
+                                            &quot;Paul D. Ryan&quot; = &quot;Paul Ryan&quot;,
+                                            &quot;Joseph R. Biden&quot; = &quot;Joe Biden&quot;,
+                                            &quot;John A. Boehner&quot; = &quot;John Boehner&quot;,
+                                            &quot;Rudolph W. Giuliani&quot; = &quot;Rudy Giuliani&quot;,
+                                            &quot; \\w\\. &quot; = &quot; &quot;,
+                                            &quot;Russell Feingold&quot; = &quot;Russ Feingold&quot;,
+                                            &quot;Jon Huntsman, Jr.&quot; = &quot;Jon Huntsman&quot;,
+                                            &quot;James Moran&quot; = &quot;Jim Moran&quot;,
+                                            &quot;James Renacci&quot; = &quot;Jim Renacci&quot;,
+                                            &quot;Christopher Dodd&quot; = &quot;Chris Dodd&quot;,
+                                            &quot;J. Randy Forbes&quot; = &quot;Randy Forbes&quot;,
+                                            &quot;.*Bobby.* Scott&quot; = &quot;Bobby Scott&quot;,
+                                            &quot;.*Hank.* Johnson&quot; = &quot;Hank Johnson&quot;,
+                                            &quot;George Bush&quot; = &quot;George W. Bush&quot;,
+                                            &quot;Joseph Lieberman&quot; = &quot;Joe Lieberman&quot;))) %&gt;%
+  add_row(Person = &quot;Donald Trump&quot;, Party = &quot;Republican&quot;, Affiliation = &quot;President&quot;, Time = &quot;January 20, 2017&quot;) %&gt;%
+  add_row(Person = &quot;Al Gore&quot;, Party = &quot;Democratic&quot;, Affiliation = &quot;Vice-President&quot;, Time = &quot;1993 - 2000&quot;) %&gt;%
+  add_row(Person = &quot;Dick Cheney&quot;, Party = &quot;Republican&quot;, Affiliation = &quot;Vice President&quot;, Time = &quot;2001 - 2008&quot;) %&gt;%
+  filter(!duplicated(Person)) #Remove the duplicate entries
+
+people_speakers &lt;- politifact %&gt;% 
+  filter(website == FALSE, #Not a website
+         str_detect(name, #Not including any of these elements
+                    regex(&quot;\\d| for |Democrat|Republican|National|Committee|Party|ACLU|Crossroads|Activist| in | our |USA|U.S.|Prop| on |Freedom|PAC&quot;, ignore_case = TRUE)) == FALSE) %&gt;% 
+  mutate(name = str_replace_all(name, &quot;  &quot;, &quot; &quot;)) %&gt;%
+  group_by(name, rating) %&gt;% 
+  summarise(n = n())
+
+verified_people_speakers &lt;- inner_join(people_speakers, individuals, by = c(&quot;name&quot; = &quot;Person&quot;)) %&gt;%
+  filter(Party %in% c(&quot;Democratic&quot;, &quot;Republican&quot;)) %&gt;%
+  distinct(name, rating, n, Party)
+
+duplicates_check &lt;- verified_people_speakers %&gt;% #Check for politicians having changed their party
+  group_by(name, Party) %&gt;% 
+  distinct(Party)
+
+duplicates_check$name[duplicated(duplicates_check$name) == TRUE]
+
+old_politicians &lt;- verified_people_speakers %&gt;% 
+  filter(name == &quot;Charlie Crist&quot;, Party == &quot;Republican&quot;) #Charlie Crist changed from Republican to Democrat, so his statements were duplicated. I will identify him as Democrat and remove the duplicate from when he was a republican
+
+verified_people_speakers &lt;- anti_join(verified_people_speakers, old_politicians)
+
+not_joined &lt;- anti_join(people_speakers %&gt;% group_by(name) %&gt;% summarise(total_ratings = sum(n)), 
+                        individuals, by = c(&quot;name&quot; = &quot;Person&quot;)) #Note that this includes pundits, organizations, and state-level politicians
+
+left_to_join &lt;- anti_join(individuals, 
+                          people_speakers %&gt;% group_by(name) %&gt;% summarise(total_ratings = sum(n)), by = c(&quot;Person&quot; = &quot;name&quot;)) </code></pre>
+<pre class="r"><code>number_of_politicians &lt;- verified_people_speakers %&gt;% 
+  group_by(Party) %&gt;% 
+  distinct(name) %&gt;% 
+  summarise(`Number of Politicians Rated` = n())
+
+party_statements &lt;- verified_people_speakers %&gt;% 
+  group_by(Party, rating) %&gt;% 
+  summarise(Subtotal_Ratings = sum(n)) %&gt;%
+  ungroup() %&gt;%
+  group_by(Party) %&gt;%
+  mutate(`Total Ratings` = comma_format()(sum(Subtotal_Ratings))) %&gt;%
+  spread(rating, Subtotal_Ratings) %&gt;%
+  select(-`Total Ratings`, everything(), `Total Ratings`)
+
+nominal_party_statements &lt;- left_join(party_statements, number_of_politicians, by = c(&quot;Party&quot; = &quot;Party&quot;)) %&gt;%
+  select(Party, `Number of Politicians Rated`, everything())
+
+number_party_statements &lt;- verified_people_speakers %&gt;% 
+  group_by(Party, rating) %&gt;% 
+  summarise(Subtotal_Ratings = sum(n)) %&gt;%
+  ungroup() %&gt;%
+  group_by(Party) %&gt;%
+  mutate(Total_Ratings = sum(Subtotal_Ratings)) %&gt;%
+  spread(rating, Subtotal_Ratings) %&gt;%
+  select(-Total_Ratings, everything(), Total_Ratings)</code></pre>
+<p>And finally, the last part of my analysis looks at various U.S. elected politicians’ individual records with the Truth-O-Meter. My intent has been to capture the most important U.S. politicians, whom I have defined to include current and recently former Presidents, Vice-Presidents, Presidential Candidates, Senators, Representatives, and Governors. [^3] In total, I will focus on the 468 Democratic and Republican U.S. politicians from these groups who have made statements that PolitiFact has rated.</p>
+<p>Interestingly, PolitiFact has rated statements by 18.7% more Republican politicians than Democratic ones (254 vs. 214) but it has rated 63.1% more statements by Republican politicians than statements by Democratic ones (4,085 vs. 2,504). See the table below:</p>
+<pre class="r"><code>kable(nominal_party_statements, align = c(&quot;l&quot;, &quot;r&quot;, &quot;r&quot;, &quot;r&quot;, &quot;r&quot;, &quot;r&quot;, &quot;r&quot;, &quot;r&quot;, &quot;r&quot;),
+      caption = &quot;Number of Statements by Major U.S. Politicians by Party&quot;)</code></pre>
+<table>
+<caption>Number of Statements by Major U.S. Politicians by Party</caption>
+<thead>
+<tr class="header">
+<th align="left">Party</th>
+<th align="right">Number of Politicians Rated</th>
+<th align="right">Pants on Fire!</th>
+<th align="right">False</th>
+<th align="right">Mostly False</th>
+<th align="right">Half-True</th>
+<th align="right">Mostly True</th>
+<th align="right">True</th>
+<th align="right">Total Ratings</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Democratic</td>
+<td align="right">214</td>
+<td align="right">69</td>
+<td align="right">306</td>
+<td align="right">332</td>
+<td align="right">594</td>
+<td align="right">682</td>
+<td align="right">521</td>
+<td align="right">2,504</td>
+</tr>
+<tr class="even">
+<td align="left">Republican</td>
+<td align="right">254</td>
+<td align="right">307</td>
+<td align="right">887</td>
+<td align="right">803</td>
+<td align="right">822</td>
+<td align="right">694</td>
+<td align="right">572</td>
+<td align="right">4,085</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>peoples_scores &lt;- left_join(verified_people_speakers, values, by = c(&quot;rating&quot; = &quot;rating&quot;)) %&gt;%
+  mutate(sub_score = n * value) %&gt;%
+  ungroup() %&gt;%
+  group_by(name, Party) %&gt;%
+  summarise(total_ratings = sum(n),
+         sum = sum(sub_score),
+         score = sum / total_ratings) %&gt;%
+  filter(total_ratings &gt; 30)
+
+top_5_peoples_scores &lt;- peoples_scores %&gt;%
+  group_by(Party) %&gt;%
+  filter(rank(desc(score)) &lt; 6) %&gt;% 
+  arrange(desc(score)) %&gt;%
+  filter(score &gt;= 0)
+
+bottom_5_peoples_scores &lt;- peoples_scores %&gt;%
+  group_by(Party) %&gt;%
+  filter(rank(score) &lt; 6) %&gt;% 
+  arrange(score) %&gt;%
+  filter(score &lt;= 0)
+
+top_bot_5_both &lt;- bind_rows(top_5_peoples_scores, bottom_5_peoples_scores) %&gt;%
+  ungroup() %&gt;%
+  mutate(name = as_factor(name),
+         name = fct_reorder(name, score),
+         color = ifelse(Party == &quot;Democratic&quot;, &quot;#1A80C4&quot;, &quot;#CC3D3D&quot;))
+
+
+dems_repubs_function &lt;- function(number, party) {
+  the_tibble &lt;- top_bot_5_both %&gt;% 
+    top_n(number, score) %&gt;% 
+    filter(Party == party)
+  
+  str_c(the_tibble$name, collapse = &quot;, &quot;) %&gt;%
+    str_replace_all(&quot;, (?=\\w+\\s\\w+$)&quot;, &quot;, and &quot;)
+}
+top_dems &lt;- dems_repubs_function(10, &quot;Democratic&quot;)
+bottom_dems &lt;- dems_repubs_function(-10, &quot;Democratic&quot;)
+top_repubs &lt;- dems_repubs_function(10, &quot;Republican&quot;)
+bottom_repubs &lt;- dems_repubs_function(-10, &quot;Republican&quot;)</code></pre>
+<p>Next, I will look at which politicians have the highest Mean Truthfulness score by party. The five Democratic politicians with the highest Truthfulness Score are Sherrod Brown, Tim Kaine, Hillary Clinton, Bill Clinton, and Barack Obama while the five Democrats with the lowest Truthfulness Score are Terry McAuliffe, Nancy Pelosi, Debbie Wasserman Schultz, Tammy Baldwin, and Joe Biden. The five Republican politicians with the highest Truthfulness Score are Rob Portman, Nathan Deal, John Kasich, Jeb Bush, and Rand Paul while the five Republicans with the lowest truthfulness score are Michele Bachmann, Donald Trump, Ted Cruz, Newt Gingrich, and Rick Santorum. <strong>Notably, the five least truthful Democrats all have a higher Mean Truthfulness Score than the five least truthful Republicans.</strong></p>
+<pre class="r"><code>colors &lt;- top_bot_5_both$color[order(top_bot_5_both$name)] #Had to post on stackoverflow to figure this one out
+
+ggplot(top_bot_5_both, aes(x = name, y = score, fill = Party)) +
+  geom_col(size = 1, color = &quot;black&quot;) +
+  coord_flip() +
+  geom_vline(xintercept = 10.5, size = 1.5, linetype = &quot;twodash&quot;) +
+  scale_fill_manual(values = c(&quot;Democratic&quot; = &quot;#1A80C4&quot;, &quot;Republican&quot; = &quot;#CC3D3D&quot;)) +
+  labs(y = &quot;Mean Truthfulness Score&quot;, x = &quot;&quot;,
+       title = &quot;Top 5 Individual Highest and Lowest Mean Truthfulness Scores by Party&quot;,
+       subtitle = &quot;Only major U.S. politicians with at least 30 rated statements are included&quot;) +
+  theme(axis.text = element_text(size = 12),
+        axis.text.y = element_text(color = colors),
+        axis.title = element_text(size = 14),
+        legend.position = &quot;bottom&quot;, 
+        legend.title = element_blank())</code></pre>
+<p><img src="Code_files/figure-html/Individual%20Graphs-1.png" width="1008" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Those_Who_Lie &lt;- verified_people_speakers %&gt;%
+  filter(name %in% peoples_scores$name) %&gt;%
+  group_by(name) %&gt;%
+  filter(rating == &quot;Pants on Fire!&quot; | rating == &quot;False&quot;)
+
+Those_Who_Dont &lt;- peoples_scores %&gt;%
+  filter(!name %in% Those_Who_Lie$name)</code></pre>
+<p>Currently, there are <strong>0 major U.S. Politicians who have not made a <em>False</em> or <em>Pants on Fire!</em> statement</strong>, among those with 30 or more statements rated by PolitiFact. The maxim that “All politicians lie” seems to be accurate, but it should be followed up with “but some lie a lot more than others.”</p>
+<div id="overall-party-mean-truthfulness-score" class="section level3">
+<h3>Overall Party Mean Truthfulness Score</h3>
+<pre class="r"><code>politifact &lt;- politifact %&gt;% 
+  mutate(name = str_replace_all(name, &quot;  &quot;, &quot; &quot;)) %&gt;%
+  mutate(rating = fct_drop(rating))
+
+politifact &lt;- left_join(politifact, values, by = &quot;rating&quot;)
+
+party_statistical_test &lt;- inner_join(politifact, 
+                                      verified_people_speakers %&gt;% 
+                                        filter(!duplicated(name)) %&gt;%
+                                        select(name, Party), 
+                                      by = c(&quot;name&quot; = &quot;name&quot;))
+  
+democrats &lt;- party_statistical_test %&gt;%
+  filter(Party == &quot;Democratic&quot;) 
+republicans &lt;- party_statistical_test %&gt;%
+  filter(Party == &quot;Republican&quot;)</code></pre>
+<p>The final part of my analysis includes grouping all of the major U.S. politicians who have received ratings from PolitiFact by party. This may be an accurate reflection of which party is more “truthful” or it may reflect selection-bias by me or by PolitiFact. Nonetheless, after performing a z-test on statements by major U.S. politicians from the Democratic and Republican party, I can say with greater than 99% confidence that the Mean Truthfulness Score for statements made by major U.S. Democratic politicians is statistically higher than that for major U.S. Republican politicians. [^4]</p>
+<pre class="r"><code>party_politicians &lt;- verified_people_speakers %&gt;%
+  group_by(Party, rating) %&gt;%
+  summarise(`Total Statements` = sum(n))
+
+party_politicians &lt;- left_join(party_politicians, values, by = c(&quot;rating&quot; = &quot;rating&quot;)) %&gt;%
+  mutate(score = value * `Total Statements`) %&gt;%
+  group_by(Party) %&gt;%
+  summarise(Total_Statements = sum(`Total Statements`),
+            Score = sum(score)) %&gt;%
+  mutate(Final_Ratings = Score / Total_Statements)
+
+added_row &lt;- tibble(Party = &quot;Average Major U.S. Politician&quot;, 
+                    Total_Statements = sum(party_politicians$Total_Statements), 
+                    Score = sum(party_politicians$Score), 
+                    Final_Ratings = Score / Total_Statements)
+
+party_politicians &lt;- party_politicians %&gt;%
+  bind_rows(added_row) %&gt;%
+  mutate(Party = as_factor(Party),
+         Party = fct_relevel(Party, &quot;Average Major U.S. Politician&quot;, after = 2))</code></pre>
+<pre class="r"><code>ggplot(party_politicians, aes(x = Party, y = Final_Ratings, fill = Party, 
+                              label = round(Final_Ratings, 3))) +
+  geom_col(size = 1, color = &quot;black&quot;) +
+  scale_fill_manual(values = c(&quot;Democratic&quot; = &quot;#1A80C4&quot;, &quot;Republican&quot; = &quot;#CC3D3D&quot;, &quot;Average Major U.S. Politician&quot; = &quot;#735F81&quot;), guide = &quot;none&quot;) +
+  labs(x = &quot;&quot;, y = &quot;&quot;, 
+       title = &quot;Mean Truthfulness Score for Major Politicians&#39; Statements by Party&quot;,
+       subtitle = str_c(&quot;Includes &quot;, 
+                        comma_format()(sum(party_politicians %&gt;% 
+                                             filter(Party == c(&quot;Democratic&quot;, &quot;Republican&quot;)) %&gt;% 
+                                             select(Total_Statements))), 
+                        &quot; statements rated by PolitiFact from &quot;, 
+                        nrow(verified_people_speakers %&gt;% 
+                               group_by(name) %&gt;% 
+                               summarise(n = n())), 
+                        &quot; current and recent major U.S. politicians, including:\nPresidents, Vice-Presidents, Presidential Candidates, Senators, Representatives, and Governors.&quot;)) +
+  geom_hline(yintercept = 0, size = 1.5, linetype = &quot;twodash&quot;) +
+  geom_vline(xintercept = 2.5, size = 1.5, linetype = &quot;solid&quot;) +
+  theme(axis.text = element_text(size = 12),
+        axis.text.x = element_text(color = c(&quot;#1A80C4&quot;, &quot;#CC3D3D&quot;, &quot;#735F81&quot;), face = &quot;bold&quot;),
+        panel.grid.major.x = element_blank()) +
+  geom_label()</code></pre>
+<p><img src="Code_files/figure-html/Democrats%20and%20Republicans%20Total%20Graph%20Final-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="final-words" class="section level2">
+<h2>Final Words</h2>
+<p>This project is simply an effort to improve my data wrangling and analysis skills as well to create a personal and demonstrable product of my abilities. While I have no connection to PolitiFact, I deeply appreciate the work they do and I encourage others to do the same. I apologize for using up their server space while scraping their site, but hopefully any exposure of their work and financial contributions from myself and others can more than repay that.</p>
+<p>For information on joining PolitiFact, see <a href="http://www.politifact.com/truth-o-meter/blog/2011/oct/06/who-pays-for-politifact/">here</a>.</p>
+<p>If you have any suggestions about ideas to extend this analysis, please share them. You are free to share this github site (attributing me as the author) or to use any of the R code I have written for your own private, non-commercial use. Simply put, please respect the time and effort I put into this project.</p>
+<div id="footnotes" class="section level3">
+<h3>Footnotes</h3>
+<p>[^1] Not until I had done a lot data wrangling did I realize that PolitiFact seems to be missing from its site any ratings issued in November 2008. While it has ratings through October 31, 2008 and beginning again on December 1, 2008, there are no ratings at all for November 2008. Visit this page and nearby ones to verify (<a href="http://www.politifact.com/truth-o-meter/statements/?page=668" class="uri">http://www.politifact.com/truth-o-meter/statements/?page=668</a>)</p>
+<p>[^2] It appears that PolitiFact’s efforts to fact-check claims appearing on Facebook <a href="http://www.politifact.com/truth-o-meter/article/2017/dec/15/we-started-fact-checking-partnership-facebook-year/">do not appear in its Truth-O-Meter ratings</a>, which puts them beyond the scope of my analysis. When I discuss PolitiFact’s ratings of statements made by websites, I only analyze those that appear in PolitiFact’s Truth-O-Meter ratings.</p>
+<p>[^3] PolitiFact has rated statements by 3,652 different entities. In my analysis of statements by major politicians by their political party, I used the following lists:</p>
+<ol style="list-style-type: decimal">
+<li>U.S. Senators and Representatives from the 109th to the 115th Congressional Sessions, available <a href="https://www.congress.gov/members?q=%7B%22congress%22%3A%5B%22110%22%2C%22111%22%2C%22112%22%2C%22113%22%2C%22114%22%2C%22115%22%5D%7D">here</a>. I included all of the sessions that have overlapped with PolitiFact’s existence, which began in 2007.</li>
+<li>Current U.S. State Governors, available <a href="https://en.wikipedia.org/wiki/List_of_living_former_United_States_Governors">here</a></li>
+<li>Currently living former U.S. State Governors, available <a href="https://www.nga.org/files/live/sites/NGA/files/pdf/directories/GovernorsList.pdf">here</a></li>
+<li>List of <a href="https://www.nytimes.com/elections/2008/primaries/candidates/index.html">2008</a>, <a href="https://www.nytimes.com/elections/2012/primaries/candidates.html">2012</a>, and <a href="https://www.nytimes.com/interactive/2016/us/elections/2016-presidential-candidates.html?_r=0">2016</a> presidential candidates</li>
+</ol>
+<p>Because the matching process is difficult, I cannot guarantee that every individual who falls into the following categories has been accounted for but this should include enough politicians to make my conclusions and analysis valid. I furthermore sought to ensure that every valid U.S. politician who has had at least 10 statements rated by PolitiFact was included. The political party designation used comes from the above mentioned sources.</p>
+<p>The remaining entities whose individual records I have intentionally not chosen to analyze include:</p>
+<ul>
+<li>Organizations, civic initiatives, PACs, campaigns, party committees and the like</li>
+<li>Websites<br />
+</li>
+<li>Pundits such as Rush Limbaugh, Sean Hannity, Rachel Maddow, etc.<br />
+</li>
+<li>And Politicians whose only positions thus far are:
+<ul>
+<li>At the state level<br />
+</li>
+<li>In a non-elected appointment (i.e. to the cabinet level, ambassadorship, or the Supreme Court)<br />
+</li>
+<li>Unsuccessful campaigns for a political seat (other than U.S. president)<br />
+</li>
+<li>Not-yet assumed office (i.e. Governor-elect, Senator-elect, etc., but I do include Presidents-elect)</li>
+<li>Or not clearly associated with either the Democratic or Republican parties (e.g. I have excluded Gary Johnson, Ralph Nader, and Jesse Ventura, but not Bernie Sanders or Joe Lieberman).</li>
+</ul></li>
+</ul>
+<p>Keep in mind that many politicians who did fit my criteria may at some point have held a position on the above list. When I refer to ‘Democrats’ and ‘Republicans’ in my analysis, I am referring to politicians who I have been able to merge</p>
+<pre class="r"><code>final_test &lt;- z.test(x = democrats$value, y = republicans$value, 
+       sigma.x = sd(democrats$value), sigma.y = sd(republicans$value), 
+       alternative = &quot;two.sided&quot;, conf.level = 0.99)</code></pre>
+<p>[^4] A z-test is used when the population variance and standard-deviation are known. Because I am considering the population only to be the statements that PolitiFact has rated (rather than <em>all</em> statements <em>all</em> politicians have made), I believe a z-test is more appropriate than a t-test. For Democrats, the standard deviation of their Mean Truthfulness Score is 1.387 and for Republicans it is 1.519 (all numbers in this footnote are rounded to three digits). In the z-test, the null hypothesis is that the true difference between the Mean Truthfulness Score of Democrats and Republicans is not equal to zero; currently the difference between those means is 0.635. With 99 percent confidence, the true difference between these means is estimated to be between 0.541 and 0.729.</p>
+<pre class="r"><code>save.image(&quot;D:/Everything/R/Politifact Investigation/Final_Final_Workspace.Rdata&quot;) #Save the workspace so I can use it in the second one</code></pre>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
