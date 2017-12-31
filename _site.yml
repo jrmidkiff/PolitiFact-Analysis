@@ -1,7 +1,7 @@
 name: James' Website
 output_dir: '.'
 navbar:
-  title: James Midkill PolitiFact Analysis
+  title: James Midkiff PolitiFact Analysis
   left:
   - text: Analysis
     href: index.html
