@@ -3,33 +3,36 @@ title: "PolitiFact - 10+ Years of Fact Checking"
 author: "James Midkiff"
 ---
 
+
+This is the R code I used to generate the analysis. Feel free to use portions of it for your own non-commercial work, but if you use all of the code then please attribute it to me. 
+
 ```{r Setup, message = FALSE}
+# Here is the R code that generated this entire analysis feel free to copy sections of it but if you're re-running the entire thing, please attribute it to me.
+# Code author:  James Midkiff
+
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(lubridate)
-library(stringr)
+library(stringr) #I love this package and Regular Expressions
 library(tidytext)
 library(scales)
 library(RColorBrewer)
-library(rvest)
+library(rvest) #Scraping package - highly recommend following the tutorial and using a CSS Selector
 library(forcats)
-library(knitr)
-library(BSDA)
+library(knitr) #For RMarkdown
+library(BSDA) #Used for Z-Test only
 rm(list = ls()) #Careful, this will wipe out your environment
-
-#Note to self, if the data is fresh and you don't want to rerun everything, load the workspace
-# IF YOU'RE RE-RUNNING THE CODE, YOU WILL NEED TO UNCOMMENT THE 
-# load("D:/Everything/R/Politifact Investigation/Final_Final_Workspace.RData")
 ```
 
 ```{r Code for Scraping Statements and Wrangling, eval = TRUE, results='hide', message=F, warning=F}
 # Scrape######### 
 
 # I recommend that you minimize everything (Alt + O) and then uncover it section by section as you go through it since it's a lot of code. I'm going to clear the envirnoment first and then save everything as an image that I can then use for the other page without code. 
+
 webpage <- read_html("http://www.politifact.com/truth-o-meter/statements/")
 no_pages <- html_text(html_nodes(webpage, '.step-links__current'))
 no_pages <- as.integer(
-  str_extract(no_pages, "\\d{3,4}(?=\n)"))
+  str_extract(no_pages, "\\d{3,4}(?=\n)")) #A quick scrape to determine how many pages there are on PolitiFact's website
 
 name <- vector("list", length = no_pages) 
 source <- vector("list", length = no_pages)
@@ -39,7 +42,7 @@ statement_text <- vector("list", length = no_pages)
 explanation_text <- vector("list", length = no_pages) 
 rating <- vector("list", length = no_pages) 
 
-
+#This is the for loop for scraping all of PolitiFact's statements.
 for (i in seq_along(1:length(name))) {
   webpage <- read_html(
     str_c("http://www.politifact.com/truth-o-meter/statements/?page=", i))
@@ -65,7 +68,7 @@ for (i in seq_along(1:length(name))) {
   }
   rating[[i]] <- as_tibble(rating[[i]])
   
-  Sys.sleep(time = 3) # Do a 3 second pause before running the loop again; uncomment this when running
+  Sys.sleep(time = 3) # Do a 3 second pause before running the loop again
   
   # This should take approximately 4 seconds (1 second of 'for loop' run time 
   # plus a 3 second mandatory wait) times 700-some pages divided by 60 seconds per 
@@ -120,7 +123,7 @@ politifact_orig <-
 (rating_type <- tibble(
   rating = c("Pants on Fire!", "False", "Mostly False", "Half-True", 
                  "Mostly True", "True", "Full Flop", "Half Flip", "No Flip"),
-  Type = c(rep("Truth-O-Meter", 6), rep("Flip-O-Meter", 3))))
+  Type = c(rep("Truth-O-Meter", 6), rep("Flip-O-Meter", 3)))) #This is a way of setting up which statements belong to the Truth-O-Meter vs the Flip-O-Meter
 
 rating_type <- rating_type %>% 
   mutate(rating = fct_relevel(
@@ -129,13 +132,13 @@ rating_type <- rating_type %>%
 politifact_orig <- left_join(politifact_orig, rating_type, by = "rating")
 
 politifact_orig <- politifact_orig %>%
-  mutate(website = if_else(str_detect(name, "\\.com|\\.net|\\.gov|\\.org|\\.edu|\\.us$"),
+  mutate(website = if_else(str_detect(name, "\\.com|\\.net|\\.gov|\\.org|\\.edu|\\.us|\\.site$"),
                            TRUE, FALSE),
-         website = if_else(str_detect(name, regex("blog|facebook|(e|e-)mail|image|tweets|online", ignore_case = TRUE)), #Flag all of this as a website
+         website = if_else(str_detect(name, regex("blog|facebook|(e|e-)mail|image|tweets|online|infowars", ignore_case = TRUE)), #Flag all of this as a website
                            TRUE, website),
-         source = str_replace_all(source, "^\\s|\\s$", ""),
+         source = str_replace_all(source, "^\\s|\\s$", ""), #Clean leading/trailing spaces
          politifact_location = if_else(str_detect(source, "National|PunditFact|NBC|Global"), 
-                                       "Not State", "State"))
+                                       "Not State", "State")) #State edition or not
 
 #I will generally be working with this dataset, which is only truth-o-meter statements
 politifact <- politifact_orig %>%
@@ -143,8 +146,9 @@ politifact <- politifact_orig %>%
 ```
 This analysis was conducted at `r Sys.time()` and only captures statement ratings PolitiFact published before that time. This project should auto-update each time that I re-run the R script. 
 
-##Background
+##1. Background
 ```{r Missing November 2008, message=F, echo = TRUE, warning=FALSE}
+#This generates the page number for people to look for to verify that there are not November 2008 ratings. If PolitiFact ever puts them up, I will take this section and the footnote out.
 page_series <- tibble(contains = str_detect(date, "December 1st, 2008"), 
                       page_no = 1:length(date))
 page_series <- page_series %>% 
@@ -155,6 +159,7 @@ see_this_nov_2008 <- max(page_series$page_no)
 According to its website, [PolitiFact](www.politifact.com) is a "fact-checking website that rates the accuracy of claims by elected officials and others who speak up in American politics." The goal of this project is to analyze all of the ratings that PolitiFact has issued since it began in 2007 and to look for trends and other curiosities in the data. Besides strengthening my data analysis and mark-up skills, my motivations for this project have been my admiration of PolitiFact's non-partisan fact-checking and my own simple curiosity.  
 
 ```{r Total Ratings, echo = TRUE, message = FALSE, tidy = TRUE}
+#Number of total ratings by PolitiFact. This shows up in the paragraph below. 'V' is my attempt at saying a number that I will use as part of inline code in the narrative.
 V_Total_Ratings <- comma_format()(as.integer
                                   (politifact_orig %>% 
                                       summarise(Total_Ratings = n())))
@@ -163,10 +168,11 @@ V_Total_Ratings <- comma_format()(as.integer
 The most recent statements evaluated by PolitiFact appear at this page, (http://www.politifact.com/truth-o-meter/statements/). As of the date and time I ran this code, **PolitiFact has evaluated a total of `r V_Total_Ratings` ratings**. [^1]
 
 
-### Truth-O-Meter vs. Flip-O-Meter
+### 1.1 Truth-O-Meter vs. Flip-O-Meter
 On its site, PolitiFact evaluates statements using either its Truth-O-Meter or its Flip-O-Meter system. In short, the Truth-O-Meter is used to evaluate statements for their **_accuracy_** (did the speaker say the truth, a falsehood, or something in between?), while the Flip-O-Meter is used to evaluate an official's **_consistency_** on an issue (did they maintain their position, or partly/completely change their stance on a topic?).  
 
 ```{r Truth-o-Meter vs. Flip-O-Meter, echo = TRUE, message = FALSE, tidy = TRUE}
+#Number and Proportions for total statements in Truth-O-Meter and Flip-O-Meter
 temp <- politifact_orig %>% 
   group_by(Type) %>% 
   summarise(Subtotal = n()) %>%
@@ -210,8 +216,9 @@ For more information on how PolitiFact selects and evaluates statements, see [he
 
 
 
-##Truth-O-Meter Summary Statistics
+##2. Truth-O-Meter Summary Statistics
 ```{r Total Truth-O-Meter Ratings, echo = TRUE, message=FALSE, fig.align='center'}
+#Truth-o-Meter Summary Stats
 truth_o_meter_ratings <- politifact %>% 
   rename(Rating = rating) %>%
   group_by(Rating) %>%
@@ -220,6 +227,7 @@ truth_o_meter_ratings <- politifact %>%
 ```
 
 ```{r Total Truth-O-Meter Ratings Graph, echo = TRUE, message=FALSE, fig.align='center'}
+#I used ColorPick Eyedropper to select the colors straight from the PolitiFact graphics
 truth_o_meter_colors <- c("#E40602", "#E71F28", "#EE9022", "#FFD503", "#C3D52D", "#71BF44")
 
 ggplot(truth_o_meter_ratings, aes(x = Rating, y = Proportion, fill = Rating)) +
@@ -233,6 +241,7 @@ ggplot(truth_o_meter_ratings, aes(x = Rating, y = Proportion, fill = Rating)) +
 ```
 
 ```{r Total Truthhoods and Falsehoods, echo = TRUE, message = FALSE, tidy = TRUE}
+#Truthhoods vs. Falsehoods numbers and percentages
 V_truthful <- truth_o_meter_ratings %>%
   filter(Rating == c("Mostly True", "True")) %>%
   summarise(Proportion = sum(Proportion)) %>%
@@ -254,8 +263,9 @@ If we consider "truths" to be those statements PolitiFact rated as _Mostly True_
 
 
 
-###Rating Issuer
+###2.1 Rating Issuer
 ```{r PolitiFact Editions, echo = TRUE, message = FALSE, warning = FALSE}
+#The locations/editions of PolitiFact summary stats
 locations <- politifact %>%
   group_by(source) %>% 
   mutate(Founded = min(year(date))) %>%
@@ -263,7 +273,7 @@ locations <- politifact %>%
   summarise(Total_Ratings = n()) %>% 
   arrange(-Total_Ratings) %>%
   ungroup() %>%
-  mutate(Proportion = percent_format()(Total_Ratings / sum(Total_Ratings))) %>%
+  mutate(`Percentage of Total Ratings` = percent_format()(Total_Ratings / sum(Total_Ratings))) %>%
   rename(Issuer = source, Type = politifact_location)
 
 locations <- locations %>%
@@ -271,7 +281,7 @@ locations <- locations %>%
   select(Rank, everything())
 
 #Merging in the electoral votes for each state, from https://state.1keydata.com/state-electoral-votes.php
-#don't forget DC
+#don't forget Washington DC
 electoral_votes <- tribble(
 ~US_State,	~`Electoral Votes`,	
 "Alabama", 9,
@@ -332,6 +342,7 @@ locations <-
 
 locations <- left_join(locations, electoral_votes, by = c("State" = "US_State"))%>%
   select(-A, -State) %>%
+  mutate(Total_Ratings = comma_format()(Total_Ratings)) %>%
   rename(`Total Ratings` = Total_Ratings) %>%
   select(everything(), `Electoral Votes`)
   
@@ -339,11 +350,12 @@ locations <- left_join(locations, electoral_votes, by = c("State" = "US_State"))
 ```
 
 ```{r Most Impt. Editions, message=F, warning=F, echo = TRUE}
+#Most important Editions
 top_x_issuers <- locations %>% 
-  filter(Proportion >= 1) %>% 
+  filter(`Percentage of Total Ratings` >= 1) %>% #Only takes those with individually more than 1% of the ratings
   mutate(Cumulative_Sum = percent_format()(cumsum(
     as.numeric(
-      str_replace_all(Proportion, "[[:punct:]]", "")) / 1000)))
+      str_replace_all(`Percentage of Total Ratings`, "[[:punct:]]", "")) / 1000)))
 
 values <- tibble(rating = levels(politifact$rating)[1:6], value = seq(-3, 2, 1)) %>%
   mutate(rating = as_factor(rating),
@@ -363,13 +375,14 @@ one_percent_issuers <- left_join(top_x_issuers, locations_rating, by = c("Issuer
   arrange(Score)
 
 one_percent_issuers <- one_percent_issuers %>%
-  mutate(cut = cut_interval(one_percent_issuers$Score, 12))
+  mutate(cut = cut_interval(one_percent_issuers$Score, 12)) 
 ```
 PolitiFact is made up of various "Editions" that focus on different sources for the statements that they will rate. There are a total of `r nrow(locations)` editions, which I have grouped into two main categories: "State" Editions that focus on statements made by officials or people in a certain U.S. state (`r nrow(locations %>% filter(Type == "State"))` such editions) and "Non-State" Editions that do not focus on a a single state (the remaining `r nrow(locations %>% filter(Type != "State"))` editions).  These `r nrow(locations %>% filter(Type == "State"))` State Editions cover states with a total of `r sum(locations$'Electoral Votes', na.rm = TRUE)` electoral votes, equal to `r percent_format()(sum(locations$'Electoral Votes', na.rm = TRUE) / 538)` of the total electoral votes available for presidential elections. 
 
 As we see from this table, PolitiFact National was the source for over one-third of the total statements evaluated. This is likely due in part to the fact that it was the earliest edition founded. The other "Not State" editions include PunditFact, which evaluates statements made by political pundits, PolitiFact Global News Service, which evaluates statements made about Health and Development, and PolitiFact NBC, which is a partnership between PolitiFact and NBC. 
 
 ```{r All PolitiFact Locations, echo = TRUE, tidy = TRUE}
+#Kable is Rmarkdown's way of making a table look good
 kable(locations, align = c("l", "l", "r", "r", "r", "r", "r"), 
       caption = "The Various PolitiFact Editions")
 ```
@@ -379,6 +392,7 @@ Given that only a subset of all of the PolitiFact Editions are responsible for t
 
 Looking at the most important PolitiFact Editions, I have set up a metric to measure the average truthfulness of the statements that they have rated. Any statement that is rated as _True_, I have assigned a Truthfulness Score of +2. Likewise, any statement that PolitiFact has rated _False_, I have assigned a Truthfulness value of -2. _Mostly True_, _Half-True_, and _Mostly False_ statements thus correspond to scores of +1, 0, and -1 respectively. _Pants on Fire!_ claims are "False" statements that are especially ridiculous, so I have given them a Truthfulness Score of -3 (see Table below). 
 ```{r Table of Values, echo = TRUE, fig.align='center', fig.width=3}
+#I came up with this metric myself
 kable(values %>% 
         rename(`Statement Rating` = rating, `Truthfulness Score` = value) %>%
         arrange(desc(`Truthfulness Score`)), 
@@ -414,8 +428,8 @@ ggplot(one_percent_issuers, aes(x = Issuer, y = Score, fill = cut)) +
 
 
 
-###Ratings Over Time
-Given that PolitiFact's provides the date that it has rated each statement, it may be interesting to explore if the relative truthfulness of the statements rated has changed over time. Since mid-2010, PolitiFact has generally issued about 3-4 statement ratings per day. In the below graph, I have taken the Mean Truthfulness Score for all of the statements that PolitiFact has evaluated each month (excluding months where PolitiFact rated fewer than 30 statements) and a smooth line to estimate the average Mean Truthfulness Score over time. 
+###2.2 Ratings Over Time
+Given that PolitiFact provides the date that it has rated each statement, it may be interesting to explore if the relative truthfulness of the statements rated has changed over time. Since mid-2010, PolitiFact has generally issued about 3-4 statement ratings per day. In the below graph, I have taken the Mean Truthfulness Score for all of the statements that PolitiFact has evaluated each month (excluding months where PolitiFact rated fewer than 30 statements) and a smooth line to estimate the average Mean Truthfulness Score over time. 
 
 Some interesting trends present themselves.  
 ```{r Overall Average Score, echo = TRUE, message = FALSE, tidy = TRUE, warning = FALSE, fig.align="center", fig.width=10.5}
@@ -429,7 +443,7 @@ avg_score_all <- left_join(avg_score_all, values, by = c("rating" = "rating")) %
 ```
 
 1. The Mean Truthfulness Score for each month is generally negative (the overall rating for all statements PolitiFact has rated was `r round(avg_score_all$avg_value, 2)`). There were only two occasions where the Mean Truthfulness Score was notably positive for a few months in a row: September and October of 2007 (early in PolitiFact's rating history) and around December 2012 / January 2013. To a smaller extent, this same positive blip also occurred in December 2014 / January 2015. Maybe the PolitiFact staff around the holiday season join in the spirit of giving by becoming more generous with their ratings?  
-2. I had thought that the presidential campaign season, which for the sake of argument I have set as one-year prior to the presidential election, would have seen several months with particularly low Mean Truthfulness Scores. My thinking was that close to the presidential election season, we would see politicians lying a lot more at the last minute to get elected. At least from this graph, these factors appear to be uncorrelated, though that may be due to the fact that there are not many presidential candidates per election and the number of them decreases as the election date approaches.  
+2. I had thought that the presidential campaign season, which for the sake of argument I have set as one-year prior to the presidential election, would have seen several months with particularly low Mean Truthfulness Scores. My thinking was that close to the presidential election, politicians would be less truthful in order to capture undecided voters at the last minute. At least from this graph, these factors appear to be uncorrelated though that may be due to the fact that there are not many presidential candidates per election and the number of them decreases as the election date approaches which in turn generates fewer statements for PolitiFact to rate.
 
 ```{r Avg. Score by Month, echo = TRUE, message = FALSE, tidy = TRUE, warning = FALSE, fig.align="center", fig.width=12}
 year_score_all_pre_na <- politifact %>% 
@@ -503,10 +517,11 @@ ggplot(year_score_all %>% slice(5:nrow(year_score_all)), #Lop off the first 4 ro
   
 
 ```
-Given how quickly PolitiFact's monthly Mean Truthfulness Score becomes very negative after the 2016 presidenital election, I decided to separate the ratings into three mutually exclusive categories to figure out why:  
+###2.3 Recent Ratings 
+Seeing as how quickly PolitiFact's monthly Mean Truthfulness Score becomes very negative after the 2016 presidenital election, I decided to separate the ratings into three mutually exclusive categories to figure out why:  
 
-1. I flagged as **Website** any rating made by an entity ending in _.com_, _.net_, _.org_, _.us_, _.edu_, _.gov_ or that had the word _email_, _facebook_, _blog_, _tweet_, _online_, or _image_ in its name.  
-2. I flagged as **Trump** any rating made by _Donald Trump_.  
+1. I flagged as **Website** any rating of a statement made by an entity ending in _.com_, _.net_, _.org_, _.us_, _.edu_, _.site_, _.gov_ or that had the word _email_, _facebook_, _blog_, _tweet_, or _image_ in its name.  
+2. I flagged as **Trump** any rating of a statement made by _Donald Trump_.  
 3. I flagged all other ratings as **Other**.  
 
 
@@ -569,6 +584,7 @@ For example, in `r worst_month$Label` for all of PolitiFact there were `r worst_
 * With `r trump_contribution_worst$Subtotal_Ratings` statements rated, **Donald Trump** contributed `r trump_contribution_worst$Sub_Score` to this month's Mean Truthfulness Score, equal to **`r percent_format()(trump_contribution_worst$percentage)`** of it   
 * And the remaining `r other_contribution_worst$Subtotal_Ratings` statements rated contributed `r other_contribution_worst$Sub_Score` to this month's Mean Truthfulness Score, equal to the remaining **`r percent_format()(other_contribution_worst$percentage)`** of it  
 ```{r Websites, echo = TRUE}
+#When was the first website rating issued. I'm only taking the averages since that point.
 first_website <- politifact %>% 
   filter(website == TRUE) %>% 
   filter(date == min(date))
@@ -611,7 +627,7 @@ ggplot(trump_web_analysis %>% filter(revised_date >= mdy("January 1, 2014")),
 
 ```
 
-##Subject
+##3. Subject
 ```{r Subjects Wrangling, eval = TRUE, results='hide'}
 # Topics#######
 
@@ -700,7 +716,7 @@ kable(table_of_topics, align = c("c", "l", "r", "r"),
       caption = "Most Discussed Subjects in PolitiFact Ratings")
 ```  
 
-Looking at the most truthfully discussed and most falsely discussed subjects, it comes as no surprise that topics such as "Fake news" and [Obama's Birth Certificate](https://obamawhitehouse.archives.gov/sites/default/files/rss_viewer/birth-certificate-long-form.pdf) have very negative Mean Truthfulness Scores. I leave it to others to ponder why topics such as "Population", "Redistricting", and "Gambling" are more truthfully discussed. I believe part of it has to do with uneven statement sampling.  
+Looking at the most truthfully discussed and most falsely discussed subjects, it comes as no surprise that topics such as "Fake news" and [Obama's Birth Certificate](https://obamawhitehouse.archives.gov/sites/default/files/rss_viewer/birth-certificate-long-form.pdf) have very negative Mean Truthfulness Scores. I leave it to others to ponder why topics such as "Population", "Redistricting", and "Gambling" are more truthfully discussed.[^3] I believe part of it has to do with uneven statement sampling.  
 
 ```{r Best/Worst Topics, echo = TRUE, message=F, fig.align="center", fig.width=10.5}
 top_10 <- total_topic_summary %>% 
@@ -733,7 +749,7 @@ ggplot(both_10s, aes(x = topic, y = Avg_Score, fill = Pos_Neg)) +
   scale_y_continuous(limits = c(-3, 0.5), breaks = c(-3:0, 0.5))
 ```
 
-##Individuals
+##4. Individuals
 ```{r Senators and Representatives, eval = TRUE, message = F, warning = F, results='hide'}
 # Senators and Representatives: ###############
 # This includes Congressional Sessions 109-115 (i.e. 2007-2008 to 2017-2018) in order to capture when PolitiFact 
@@ -764,9 +780,9 @@ congress <- bind_cols(combined_rep_names, combined_expanded_info)
 congress <- congress %>% 
   rename(Individual = value, Information = value1) %>%
   mutate(Individual = str_replace(Individual, "[[:alpha:]]*\\s", ""),
-         State = str_extract(Information, "(?<=State:[[:space:]]{1,100})[[:alpha:]]+\\s*[[:alpha:]]+(?=\\r)"),
+         State = str_extract(Information, "(?<=State:[[:space:]]{1,100})[[:alpha:]]+\\s*[[:alpha:]]+(?=\\r)"), 
          Party = str_extract(Information, "(?<=Party:[[:space:]]{1,100})[[:alpha:]]+\\s*[[:alpha:]]+(?=\\r)"),
-         Served = str_extract(Information, "(?<=Served:[[:space:]]{1,100})[[:alpha:]]+:.*(?=[[:space:]])")) %>%
+         Served = str_extract(Information, "(?<=Served:[[:space:]]{1,100})[[:alpha:]]+:.*(?=[[:space:]])")) %>% #I actually don't use this info, because it was too messy in the real-world to be suitable in my opinion for analysis, but I'm really proud that I was able to get a regex to find it. Messy in that many senators and reps and governors held multiple of each position, and they quit and swapped at frequently non-coinciding dates.
   separate(col = Individual, into = c("Last Name", "First Name"), sep = "\\,\\s") %>%
   select(-Information) %>%
   unite(col = Individual, `First Name`, `Last Name`, sep = " ", remove = TRUE)
@@ -787,7 +803,7 @@ current_governors <- current_governors %>%
   select(State, Governor, Party, Term, Status) 
 
 
-former_govs <- read_csv("D:/Everything/R/Politifact Investigation/Former Governors Copied.csv") #I hade to copy this manually from
+former_govs <- read_csv("D:/Everything/R/Politifact Investigation/Former Governors Copied.csv") #I had to copy this manually from
 # https://en.wikipedia.org/wiki/List_of_living_former_United_States_Governors into a csv
 
 former_govs <- former_govs %>%
@@ -803,6 +819,7 @@ governors <- as_tibble(bind_rows(current_governors, former_govs))
 ```
 
 ```{r Presidential Candidates, message=F, eval = TRUE, warning=F, results='hide'}
+#2016 presidential candidates
 webpage <- read_html("https://www.nytimes.com/interactive/2016/us/elections/2016-presidential-candidates.html?_r=0")
 politifact_scrape <- function(x) {
   as_tibble(
@@ -816,11 +833,13 @@ Prez_Cand_2016 <- Prez_Cand_2016 %>%
          Affiliation = "Presidential Candidate", 
          Time = 2016)
 
+#2012
 Prez_Cand_2012 <- tibble(Candidate = c("Mitt Romney", "Rick Santorum", "Ron Paul", "Newt Gingrich", "Herman Cain"),
                          Party = rep("Republican", 5)) %>% #from https://en.wikipedia.org/wiki/Republican_Party_presidential_primaries,_2012
   mutate(Affiliation = "Presidential Candidate",
          Time = 2012)
 
+#2008
 webpage <- read_html("https://www.nytimes.com/elections/2008/primaries/candidates/index.html")
 Prez_Cand_2008_D <- politifact_scrape('#not_running+ .o8column .o8name a')
 Prez_Cand_2008_D <- Prez_Cand_2008_D %>%
@@ -837,6 +856,7 @@ Prez_Cand_2008 <- bind_rows(Prez_Cand_2008_D, Prez_Cand_2008_R) %>%
 ```
 
 ```{r Combining All, message=F, eval = TRUE, warning=F, results='hide'}
+#Combining all the candidates, governors and congress together separately, and then together together
 presidential_candidates <- bind_rows(Prez_Cand_2008, Prez_Cand_2012, Prez_Cand_2016) %>%
   rename(Person = Candidate) %>%
   mutate(Time = as.character(Time))
@@ -855,6 +875,7 @@ congress <- congress %>%
   rename(Person = Individual, Time = Served, Affiliation = State) %>%
   mutate(Affiliation = str_c(Affiliation, " Congress"))
 
+#Yeah this required a lot of manual adjusting and some manual adding
 individuals <- bind_rows(governors, congress, presidential_candidates) %>%
   mutate(Person = str_replace_all(Person, "^ | $", ""),
          Person = str_replace_all(Person, c("Hillary Rodham Clinton" = "Hillary Clinton",
@@ -880,7 +901,7 @@ individuals <- bind_rows(governors, congress, presidential_candidates) %>%
 
 people_speakers <- politifact %>% 
   filter(website == FALSE, #Not a website
-         str_detect(name, #Not including any of these elements
+         str_detect(name, #Not including any of these elements, though it really doesn't matter
                     regex("\\d| for |Democrat|Republican|National|Committee|Party|ACLU|Crossroads|Activist| in | our |USA|U.S.|Prop| on |Freedom|PAC", ignore_case = TRUE)) == FALSE) %>% 
   mutate(name = str_replace_all(name, "  ", " ")) %>%
   group_by(name, rating) %>% 
@@ -899,11 +920,14 @@ duplicates_check$name[duplicated(duplicates_check$name) == TRUE]
 old_politicians <- verified_people_speakers %>% 
   filter(name == "Charlie Crist", Party == "Republican") #Charlie Crist changed from Republican to Democrat, so his statements were duplicated. I will identify him as Democrat and remove the duplicate from when he was a republican
 
+#Verified important politicians - this is the important one
 verified_people_speakers <- anti_join(verified_people_speakers, old_politicians)
 
+#Who wasn't joined
 not_joined <- anti_join(people_speakers %>% group_by(name) %>% summarise(total_ratings = sum(n)), 
                         individuals, by = c("name" = "Person")) #Note that this includes pundits, organizations, and state-level politicians
 
+#Who else was a major politician that I haven't been able to match up? Many of them probably don't have statement ratings.
 left_to_join <- anti_join(individuals, 
                           people_speakers %>% group_by(name) %>% summarise(total_ratings = sum(n)), by = c("Person" = "name")) 
 ```
@@ -935,7 +959,7 @@ number_party_statements <- verified_people_speakers %>%
   spread(rating, Subtotal_Ratings) %>%
   select(-Total_Ratings, everything(), Total_Ratings)
 ```
-And finally, the last part of my analysis looks at various U.S. elected politicians' individual records with the Truth-O-Meter. My intent has been to capture the most important U.S. politicians, whom I have defined to include current and recently former Presidents, Vice-Presidents, Presidential Candidates, Senators, Representatives, and Governors. [^3] In total, I will focus on the `r nrow(verified_people_speakers %>% group_by(name) %>% summarise(n = n()))` Democratic and Republican U.S. politicians from these groups who have made statements that PolitiFact has rated. 
+And finally, the last part of my analysis looks at various U.S. elected politicians' individual records with the Truth-O-Meter. My intent has been to capture the most important U.S. politicians, whom I have defined to include current and recently former Presidents, Vice-Presidents, Presidential Candidates, Senators, Representatives, and Governors. [^4] In total, I will focus on the `r nrow(verified_people_speakers %>% group_by(name) %>% summarise(n = n()))` Democratic and Republican U.S. politicians from these groups who have made statements that PolitiFact has rated. 
 
 Interestingly, PolitiFact has rated statements by `r percent_format()(as.numeric(nominal_party_statements[2,2]/nominal_party_statements[1,2] - 1))` more Republican politicians than Democratic ones (`r nominal_party_statements[2,2]` vs. `r nominal_party_statements[1,2]`) but it has rated `r percent_format()(number_party_statements$Total_Ratings[2]/number_party_statements$Total_Ratings[1] - 1)` more statements by Republican politicians than statements by Democratic ones (`r nominal_party_statements[2,9]` vs. `r nominal_party_statements[1,9]`). See the table below:
 
@@ -952,11 +976,11 @@ peoples_scores <- left_join(verified_people_speakers, values, by = c("rating" = 
   summarise(total_ratings = sum(n),
          sum = sum(sub_score),
          score = sum / total_ratings) %>%
-  filter(total_ratings > 30)
+  filter(total_ratings > 30) #There really aren't that many politicians with at least 30 statements - perhaps I should lower that but I kept it for consistency's sake with the earlier graph of PolitiFact's statements by month
 
 top_5_peoples_scores <- peoples_scores %>%
   group_by(Party) %>%
-  filter(rank(desc(score)) < 6) %>% 
+  filter(rank(desc(score)) < 6) %>% #This is an annoying way of getting the top or bottom 5
   arrange(desc(score)) %>%
   filter(score >= 0)
 
@@ -979,14 +1003,14 @@ dems_repubs_function <- function(number, party) {
     filter(Party == party)
   
   str_c(the_tibble$name, collapse = ", ") %>%
-    str_replace_all(", (?=\\w+\\s\\w+$)", ", and ")
+    str_replace_all(", (?=\\w+\\s\\w+$)", ", and ") #Another cute little Regex I'm proud of that converts it all to correct English.
 }
 top_dems <- dems_repubs_function(10, "Democratic")
 bottom_dems <- dems_repubs_function(-10, "Democratic")
 top_repubs <- dems_repubs_function(10, "Republican")
 bottom_repubs <- dems_repubs_function(-10, "Republican")
 ```
-Next, I will look at which politicians have the highest Mean Truthfulness score by party. The five Democratic politicians with the highest Truthfulness Score are `r top_dems` while the five Democrats with the lowest Truthfulness Score are `r bottom_dems`. The five Republican politicians with the highest Truthfulness Score are `r top_repubs` while the five Republicans with the lowest truthfulness score are `r bottom_repubs`. **Notably, the five least truthful Democrats all have a higher Mean Truthfulness Score than the five least truthful Republicans.** 
+Next, I will look at which politicians have the highest Mean Truthfulness score by party. The five Democratic politicians with the highest Truthfulness Score are `r top_dems` while the five Democrats with the lowest Truthfulness Score are `r bottom_dems`. The five Republican politicians with the highest Truthfulness Score are `r top_repubs` while the five Republicans with the lowest truthfulness score are `r bottom_repubs`. **The five least truthful Democrats all have a higher Mean Truthfulness Score than the five least truthful Republicans.** 
 
 
 ```{r Individual Graphs, echo = TRUE, message=F, warning=F, fig.align="center", fig.width=10.5}
@@ -1008,6 +1032,7 @@ ggplot(top_bot_5_both, aes(x = name, y = score, fill = Party)) +
 ```
 
 ```{r All Politicians Lie, echo = TRUE}
+#For the maxim below 
 Those_Who_Lie <- verified_people_speakers %>%
   filter(name %in% peoples_scores$name) %>%
   group_by(name) %>%
@@ -1017,9 +1042,9 @@ Those_Who_Dont <- peoples_scores %>%
   filter(!name %in% Those_Who_Lie$name)
 
 ```
-Currently, there are **`r nrow(Those_Who_Dont)` major U.S. Politicians who have not made a _False_ or _Pants on Fire!_ statement**, among those with 30 or more statements rated by PolitiFact. The maxim that "All politicians lie" seems to be accurate, but it should be followed up with "but some lie a lot more than others."
+Currently, there are **`r nrow(Those_Who_Dont)` major U.S. Politicians who have not made a _False_ or _Pants on Fire!_ statement**, among those with 30 or more statements rated by PolitiFact. The adage that "All politicians lie" seems to be accurate, but it should be followed up with "but some lie a lot more than others."
 
-###Overall Party Mean Truthfulness Score
+###4.1 Overall Party Mean Truthfulness Score
 ```{r Democrats and Republicans Total, echo = TRUE, message=F, warning=F, fig.align="center", fig.width=8}
 politifact <- politifact %>% 
   mutate(name = str_replace_all(name, "  ", " ")) %>%
@@ -1038,7 +1063,7 @@ democrats <- party_statistical_test %>%
 republicans <- party_statistical_test %>%
   filter(Party == "Republican")
 ```
-The final part of my analysis includes grouping all of the major U.S. politicians who have received ratings from PolitiFact by party. This may be an accurate reflection of which party is more "truthful" or it may reflect selection-bias by me or by PolitiFact. Nonetheless, after performing a z-test on statements by major U.S. politicians from the Democratic and Republican party, I can say with greater than 99% confidence that the Mean Truthfulness Score for statements made by major U.S. Democratic politicians is statistically higher than that for major U.S. Republican politicians. [^4]  
+The final part of my analysis includes grouping all of the major U.S. politicians who have received ratings from PolitiFact by party. This may be an accurate reflection of which party is more "truthful" or it may reflect selection-bias by me or by PolitiFact. Nonetheless, after performing a z-test on statements by major U.S. politicians from the Democratic and Republican party, I can say with greater than 99% confidence that the Mean Truthfulness Score for statements made by major U.S. Democratic politicians is statistically higher than that for major U.S. Republican politicians. [^5]  
 
 ```{r Democrats and Republicans Total Graph, echo = TRUE, message=F, warning=F, fig.align="center", fig.width=8}
 party_politicians <- verified_people_speakers %>%
@@ -1087,7 +1112,14 @@ ggplot(party_politicians, aes(x = Party, y = Final_Ratings, fill = Party,
   geom_label()
 ```
 
-##Final Words
+##5. Final Words
+This project is simply an effort to improve my data wrangling and analysis skills as well to create a personal and demonstrable product of my abilities. While I have no connection to PolitiFact, I deeply appreciate the work they do and I encourage others to do the same. I apologize for using up their server space while scraping their site, but hopefully any exposure of their work and financial contributions from myself and others can more than repay that.  
+
+For information on joining PolitiFact, see [here](http://www.politifact.com/truth-o-meter/blog/2011/oct/06/who-pays-for-politifact/). 
+
+If you have any suggestions about ideas to extend this analysis, please share them. You are free to share this github site (attributing me as the author) or to use any of the R code I have written for your own private, non-commercial use. Simply put, please respect the time and effort I put into this project.
+
+###Footnotes
 This project is simply an effort to improve my data wrangling and analysis skills as well to create a personal and demonstrable product of my abilities. While I have no connection to PolitiFact, I deeply appreciate the work they do and I encourage others to do the same. I apologize for using up their server space while scraping their site, but hopefully any exposure of their work and financial contributions from myself and others can more than repay that.  
 
 For information on joining PolitiFact, see [here](http://www.politifact.com/truth-o-meter/blog/2011/oct/06/who-pays-for-politifact/). 
@@ -1099,14 +1131,17 @@ If you have any suggestions about ideas to extend this analysis, please share th
 
 [^2] It appears that PolitiFact's efforts to fact-check claims appearing on Facebook [do not appear in its Truth-O-Meter ratings](http://www.politifact.com/truth-o-meter/article/2017/dec/15/we-started-fact-checking-partnership-facebook-year/), which puts them beyond the scope of my analysis. When I discuss PolitiFact's ratings of statements made by websites, I only analyze those that appear in PolitiFact's Truth-O-Meter ratings.  
 
-[^3] PolitiFact has rated statements by `r comma_format()(nrow(politifact %>% group_by(name) %>% summarise(n = n())))` different entities. In my analysis of statements by major politicians by their political party, I used the following lists:  
+[^3] Not all subjects listed on PolitiFact's subjects page are actual issues. While subjects such as Abortion and Islam capture statements that refer to Abortion or Islam, the subject "This Week - ABC News" captures statements instead made by politicians and pundits while actually on that television show. 
+
+[^4] PolitiFact has rated statements by `r comma_format()(nrow(politifact %>% group_by(name) %>% summarise(n = n())))` different entities. In my analysis of statements by major politicians by their political party, I used the following lists:  
 
 1) U.S. Senators and Representatives from the 109th to the 115th Congressional Sessions, available [here](https://www.congress.gov/members?q=%7B%22congress%22%3A%5B%22110%22%2C%22111%22%2C%22112%22%2C%22113%22%2C%22114%22%2C%22115%22%5D%7D). I included all of the sessions that have overlapped with PolitiFact's existence, which began in 2007. 
 2) Current U.S. State Governors, available [here](https://en.wikipedia.org/wiki/List_of_living_former_United_States_Governors)
 3) Currently living former U.S. State Governors, available [here](https://www.nga.org/files/live/sites/NGA/files/pdf/directories/GovernorsList.pdf)
-4) List of [2008](https://www.nytimes.com/elections/2008/primaries/candidates/index.html), [2012](https://www.nytimes.com/elections/2012/primaries/candidates.html), and [2016](https://www.nytimes.com/interactive/2016/us/elections/2016-presidential-candidates.html?_r=0) presidential candidates
+4) [2008](https://www.nytimes.com/elections/2008/primaries/candidates/index.html), [2012](https://www.nytimes.com/elections/2012/primaries/candidates.html), and [2016](https://www.nytimes.com/interactive/2016/us/elections/2016-presidential-candidates.html?_r=0) presidential candidates
+5) The eight Presidents and Vice-Presidents from 1993 to Present (PolitiFact has not yet rated any statements by presidents prior to Bill Clinton).
 
-Because the matching process is difficult, I cannot guarantee that every individual who falls into the following categories has been accounted for but this should include enough politicians to make my conclusions and analysis valid. I furthermore sought to ensure that every valid U.S. politician who has had at least 10 statements rated by PolitiFact was included. The political party designation used comes from the above mentioned sources. 
+When I refer to 'Democrats' and 'Republicans' in my analysis, I am referring to politicians from the above lists who I have been successfully able to match to individuals who have had statements rated by PolitiFact. Because the matching process is difficult, I cannot guarantee that every individual who falls into the following categories has been accounted for but this should include enough politicians to make my conclusions and analysis valid. I furthermore sought to ensure that every valid U.S. politician who has had at least 10 statements rated by PolitiFact was included. The political party designation used comes from the above mentioned sources. 
 
 The remaining entities whose individual records I have intentionally not chosen to analyze include:  
 
@@ -1120,15 +1155,15 @@ The remaining entities whose individual records I have intentionally not chosen 
     * Not-yet assumed office (i.e. Governor-elect, Senator-elect, etc., but I do include Presidents-elect)
     * Or not clearly associated with either the Democratic or Republican parties (e.g. I have excluded Gary Johnson, Ralph Nader, and Jesse Ventura, but not Bernie Sanders or Joe Lieberman). 
         
-Keep in mind that many politicians who did fit my criteria may at some point have held a position on the above list. When I refer to 'Democrats' and 'Republicans' in my analysis, I am referring to politicians who I have been able to merge 
-```{r Z-Test, echo = TRUE}
-final_test <- z.test(x = democrats$value, y = republicans$value, 
-       sigma.x = sd(democrats$value), sigma.y = sd(republicans$value), 
-       alternative = "two.sided", conf.level = 0.99)
+Keep in mind that many politicians who did fit my criteria may at some point have held a position on the above list.  
+
+```{r, echo=TRUE, message=F, warning=F}
+final_test <- z.test(x = democrats$value, y = republicans$value, alternative = "two.sided", 
+                     sigma.x = sd(democrats$value), sigma.y = sd(republicans$value), conf.level = 0.99)
 ```
 
-[^4] A z-test is used when the population variance and standard-deviation are known. Because I am considering the population only to be the statements that PolitiFact has rated (rather than _all_ statements _all_ politicians have made), I believe a z-test is more appropriate than a t-test. For Democrats, the standard deviation of their Mean Truthfulness Score is `r round(sd(democrats$value), 3)` and for Republicans it is `r round(sd(republicans$value), 3)` (all numbers in this footnote are rounded to three digits). In the z-test, the null hypothesis is that the true difference between the Mean Truthfulness Score of Democrats and Republicans is not equal to zero; currently the difference between those means is `r round(mean(democrats$value) - mean(republicans$value), 3)`. With 99 percent confidence, the true difference between these means is estimated to be between `r round(final_test$conf.int[[1]], 3)` and `r round(final_test$conf.int[[2]], 3)`. 
+[^5] A z-test is used when the population variance and standard-deviation are known. Because I am considering the population only to be the statements that PolitiFact has rated (rather than _all_ statements _all_ politicians have made), I believe a z-test is more appropriate than a t-test. For Democrats, the standard deviation of their Mean Truthfulness Score is `r round(sd(democrats$value), 3)` and for Republicans it is `r round(sd(republicans$value), 3)` (all numbers in this footnote are rounded to three digits). In the z-test, the null hypothesis is that the true difference between the Mean Truthfulness Score of Democrats and Republicans is equal to zero; currently the difference between those means is `r round(mean(democrats$value) - mean(republicans$value), 3)`. With 99 percent confidence, the true difference between these means is estimated to be between `r round(final_test$conf.int[[1]], 3)` and `r round(final_test$conf.int[[2]], 3)`. 
 
 ```{r Save Workspace}
-save.image("D:/Everything/R/Politifact Investigation/Final_Final_Workspace.Rdata") #Save the workspace so I can use it in the second one
+save.image("D:/Everything/R/Politifact Investigation/Final_Final_Workspace.Rdata") #Save the workspace so I can use it in the 'Analysis' page without having to re-run all this code
 ```
