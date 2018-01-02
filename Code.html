@@ -174,7 +174,7 @@ $(document).ready(function () {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">James Midkill PolitiFact Analysis</a>
+      <a class="navbar-brand" href="index.html">James Midkiff PolitiFact Analysis</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
@@ -207,17 +207,24 @@ $(document).ready(function () {
 # Code author:  James Midkiff
 
 knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
-library(lubridate)
-library(stringr) #I love this package and Regular Expressions
-library(tidytext)
-library(scales)
-library(RColorBrewer)
+library(tidyverse)</code></pre>
+<pre><code>## Warning: package &#39;tidyverse&#39; was built under R version 3.4.3</code></pre>
+<pre><code>## Warning: package &#39;stringr&#39; was built under R version 3.4.3</code></pre>
+<pre><code>## Warning: package &#39;forcats&#39; was built under R version 3.4.3</code></pre>
+<pre class="r"><code>library(lubridate)</code></pre>
+<pre><code>## Warning: package &#39;lubridate&#39; was built under R version 3.4.3</code></pre>
+<pre class="r"><code>library(stringr) #I love this package and Regular Expressions
+library(tidytext)</code></pre>
+<pre><code>## Warning: package &#39;tidytext&#39; was built under R version 3.4.3</code></pre>
+<pre class="r"><code>library(scales)</code></pre>
+<pre><code>## Warning: package &#39;scales&#39; was built under R version 3.4.3</code></pre>
+<pre class="r"><code>library(RColorBrewer)
 library(rvest) #Scraping package - highly recommend following the tutorial and using a CSS Selector
 library(forcats)
 library(knitr) #For RMarkdown
-library(BSDA) #Used for Z-Test only
-rm(list = ls()) #Careful, this will wipe out your environment</code></pre>
+library(BSDA) #Used for Z-Test only</code></pre>
+<pre><code>## Warning: package &#39;BSDA&#39; was built under R version 3.4.3</code></pre>
+<pre class="r"><code>rm(list = ls()) #Careful, this will wipe out your environment</code></pre>
 <pre class="r"><code># Scrape######### 
 
 # I recommend that you minimize everything (Alt + O) and then uncover it section by section as you go through it since it&#39;s a lot of code. I&#39;m going to clear the envirnoment first and then save everything as an image that I can then use for the other page without code. 
@@ -336,7 +343,7 @@ politifact_orig &lt;- politifact_orig %&gt;%
 #I will generally be working with this dataset, which is only truth-o-meter statements
 politifact &lt;- politifact_orig %&gt;%
   filter(Type == &quot;Truth-O-Meter&quot;)</code></pre>
-<p>This analysis was conducted at 2017-12-31 13:43:30 and only captures statement ratings PolitiFact published before that time. This project should auto-update each time that I re-run the R script.</p>
+<p>This analysis was conducted at 2018-01-01 12:27:52 and only captures statement ratings PolitiFact published before that time. This project should auto-update each time that I re-run the R script.</p>
 <div id="background" class="section level2">
 <h2>1. Background</h2>
 <pre class="r"><code>#This generates the page number for people to look for to verify that there are not November 2008 ratings. If PolitiFact ever puts them up, I will take this section and the footnote out.
