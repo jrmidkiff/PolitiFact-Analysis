@@ -165,7 +165,7 @@ ggplot(year_score_all %>% slice(5:nrow(year_score_all)), #Lop off the first 4 ro
   
 
 ```
-###2.3 Recent Ratings  
+###2.3 Recent Ratings
 Seeing as how quickly PolitiFact's monthly Mean Truthfulness Score becomes very negative after the 2016 presidenital election, I decided to separate the ratings into three mutually exclusive categories to figure out why:  
 
 1. I flagged as **Website** any rating of a statement made by an entity ending in _.com_, _.net_, _.org_, _.us_, _.edu_, _.site_, _.gov_ or that had the word _email_, _facebook_, _blog_, _tweet_, or _image_ in its name.  
