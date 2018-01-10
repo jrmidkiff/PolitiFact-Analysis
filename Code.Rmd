@@ -6,7 +6,7 @@ author: "James Midkiff"
 
 This is the R code I used to generate the analysis. Feel free to use portions of it for your own non-commercial work, but if you use all of the code then please attribute it to me. 
 
-```{r Setup, message = FALSE}
+```{r Setup, message = FALSE, warning=F}
 # Here is the R code that generated this entire analysis feel free to copy sections of it but if you're re-running the entire thing, please attribute it to me.
 # Code author:  James Midkiff
 
@@ -146,7 +146,7 @@ politifact <- politifact_orig %>%
 ```
 This analysis was conducted at `r Sys.time()` and only captures statement ratings PolitiFact published before that time. This project should auto-update each time that I re-run the R script. 
 
-##1. Background
+## 1. Background
 ```{r Missing November 2008, message=F, echo = TRUE, warning=FALSE}
 #This generates the page number for people to look for to verify that there are not November 2008 ratings. If PolitiFact ever puts them up, I will take this section and the footnote out.
 page_series <- tibble(contains = str_detect(date, "December 1st, 2008"), 
@@ -216,7 +216,7 @@ For more information on how PolitiFact selects and evaluates statements, see [he
 
 
 
-##2. Truth-O-Meter Summary Statistics
+## 2. Truth-O-Meter Summary Statistics
 ```{r Total Truth-O-Meter Ratings, echo = TRUE, message=FALSE, fig.align='center'}
 #Truth-o-Meter Summary Stats
 truth_o_meter_ratings <- politifact %>% 
@@ -263,7 +263,7 @@ If we consider "truths" to be those statements PolitiFact rated as _Mostly True_
 
 
 
-###2.1 Rating Issuer
+### 2.1 Rating Issuer
 ```{r PolitiFact Editions, echo = TRUE, message = FALSE, warning = FALSE}
 #The locations/editions of PolitiFact summary stats
 locations <- politifact %>%
@@ -428,7 +428,7 @@ ggplot(one_percent_issuers, aes(x = Issuer, y = Score, fill = cut)) +
 
 
 
-###2.2 Ratings Over Time
+### 2.2 Ratings Over Time
 Given that PolitiFact provides the date that it has rated each statement, it may be interesting to explore if the relative truthfulness of the statements rated has changed over time. Since mid-2010, PolitiFact has generally issued about 3-4 statement ratings per day. In the below graph, I have taken the Mean Truthfulness Score for all of the statements that PolitiFact has evaluated each month (excluding months where PolitiFact rated fewer than 30 statements) and a smooth line to estimate the average Mean Truthfulness Score over time. 
 
 Some interesting trends present themselves.  
@@ -517,7 +517,7 @@ ggplot(year_score_all %>% slice(5:nrow(year_score_all)), #Lop off the first 4 ro
   
 
 ```
-###2.3 Recent Ratings
+### 2.3 Recent Ratings
 Seeing as how quickly PolitiFact's monthly Mean Truthfulness Score becomes very negative after the 2016 presidenital election, I decided to separate the ratings into three mutually exclusive categories to figure out why:  
 
 1. I flagged as **Website** any rating of a statement made by an entity ending in _.com_, _.net_, _.org_, _.us_, _.edu_, _.site_, _.gov_ or that had the word _email_, _facebook_, _blog_, _tweet_, or _image_ in its name.  
@@ -601,7 +601,8 @@ websites_by_month <- trump_web_analysis %>%
 Since December 2016, ratings of statements made by websites have been the single largest contributor to the highly negative Mean Truthfulness Scores of late. This coincides with the [founding of PolitiFact's partnership with Facebook](http://www.politifact.com/truth-o-meter/article/2017/dec/15/we-started-fact-checking-partnership-facebook-year/) to fact-check claims made on the social media site, and likely represents a push overall to rate the accuracy of more claims made online. [^2] Since December 2016, PolitiFact has rated an average of `r websites_by_month$avg_per_month[[1]]` statements made online per month and these statements have an average rating of `r websites_by_month$avg_rating[[1]]`, which is closest to **_Pants on Fire!_**. Prior to December 2016, PolitiFact only rated an average of `r websites_by_month$avg_per_month[[2]]` statements from websites per month, and with an average rating of `r websites_by_month$avg_rating[[2]]` these ratings were closer to **_False_**. 
 
 ```{r Trump/Websites/All Other Plot, echo = TRUE, message = F, warning=F, fig.align="center", fig.width=10.5}
-ggplot(trump_web_analysis %>% filter(revised_date >= mdy("January 1, 2014")), 
+ggplot(trump_web_analysis %>% filter(revised_date >= mdy("January 1, 2014"), 
+                                     Total_Ratings >= 30), 
        aes(x = revised_date + 15, y = Sub_Score, fill = analysis, 
            color = analysis, group = analysis)) + #Add 15 days to each month so they align better
   geom_rect(xmin = ymd("2016-Nov-8") - 365, xmax = ymd("2016-Nov-8"),
@@ -613,7 +614,7 @@ ggplot(trump_web_analysis %>% filter(revised_date >= mdy("January 1, 2014")),
   scale_y_continuous(breaks = seq(-1.25, 0.5, 0.25)) +
   labs(title = "PolitiFact Mean Truthfulness Score per Month, 2014 - Present",
        x = "", y = "Monthly Average", 
-       subtitle = "Shaded area indicates 12 months prior to the November 8, 2016 presidential election. Mean Truthfulness Scores are additive for Donald Trump, Websites, and Other.") +
+       subtitle = "Shaded area indicates 12 months prior to the November 8, 2016 presidential election. Mean Truthfulness Scores are additive for Donald Trump, Websites, and Other.\nOnly months with 30 or more total ratings are shown.") +
   theme(legend.position = "bottom", 
         legend.box.margin = margin(t = -20), 
         axis.text.x = element_text(size = 12), 
@@ -627,7 +628,7 @@ ggplot(trump_web_analysis %>% filter(revised_date >= mdy("January 1, 2014")),
 
 ```
 
-##3. Subject
+## 3. Subject
 ```{r Subjects Wrangling, eval = TRUE, results='hide'}
 # Topics#######
 
@@ -749,7 +750,7 @@ ggplot(both_10s, aes(x = topic, y = Avg_Score, fill = Pos_Neg)) +
   scale_y_continuous(limits = c(-3, 0.5), breaks = c(-3:0, 0.5))
 ```
 
-##4. Individuals
+## 4. Individuals
 ```{r Senators and Representatives, eval = TRUE, message = F, warning = F, results='hide'}
 # Senators and Representatives: ###############
 # This includes Congressional Sessions 109-115 (i.e. 2007-2008 to 2017-2018) in order to capture when PolitiFact 
@@ -1044,7 +1045,7 @@ Those_Who_Dont <- peoples_scores %>%
 ```
 Currently, there are **`r nrow(Those_Who_Dont)` major U.S. Politicians who have not made a _False_ or _Pants on Fire!_ statement**, among those with 30 or more statements rated by PolitiFact. The adage that "All politicians lie" seems to be accurate, but it should be followed up with "but some lie a lot more than others."
 
-###4.1 Overall Party Mean Truthfulness Score
+### 4.1 Overall Party Mean Truthfulness Score
 ```{r Democrats and Republicans Total, echo = TRUE, message=F, warning=F, fig.align="center", fig.width=8}
 politifact <- politifact %>% 
   mutate(name = str_replace_all(name, "  ", " ")) %>%
@@ -1112,21 +1113,14 @@ ggplot(party_politicians, aes(x = Party, y = Final_Ratings, fill = Party,
   geom_label()
 ```
 
-##5. Final Words
+## 5. Final Words
 This project is simply an effort to improve my data wrangling and analysis skills as well to create a personal and demonstrable product of my abilities. While I have no connection to PolitiFact, I deeply appreciate the work they do and I encourage others to do the same. I apologize for using up their server space while scraping their site, but hopefully any exposure of their work and financial contributions from myself and others can more than repay that.  
 
 For information on joining PolitiFact, see [here](http://www.politifact.com/truth-o-meter/blog/2011/oct/06/who-pays-for-politifact/). 
 
 If you have any suggestions about ideas to extend this analysis, please share them. You are free to share this github site (attributing me as the author) or to use any of the R code I have written for your own private, non-commercial use. Simply put, please respect the time and effort I put into this project.
 
-###Footnotes
-This project is simply an effort to improve my data wrangling and analysis skills as well to create a personal and demonstrable product of my abilities. While I have no connection to PolitiFact, I deeply appreciate the work they do and I encourage others to do the same. I apologize for using up their server space while scraping their site, but hopefully any exposure of their work and financial contributions from myself and others can more than repay that.  
-
-For information on joining PolitiFact, see [here](http://www.politifact.com/truth-o-meter/blog/2011/oct/06/who-pays-for-politifact/). 
-
-If you have any suggestions about ideas to extend this analysis, please share them. You are free to share this github site (attributing me as the author) or to use any of the R code I have written for your own private, non-commercial use. Simply put, please respect the time and effort I put into this project.
-
-###Footnotes
+### Footnotes
 [^1] Not until I had done a lot data wrangling did I realize that PolitiFact seems to be missing from its site any ratings issued in November 2008. While it has ratings through October 31, 2008 and beginning again on December 1, 2008, there are no ratings at all for November 2008.  Visit this page and nearby ones to verify (http://www.politifact.com/truth-o-meter/statements/?page=`r see_this_nov_2008`)  
 
 [^2] It appears that PolitiFact's efforts to fact-check claims appearing on Facebook [do not appear in its Truth-O-Meter ratings](http://www.politifact.com/truth-o-meter/article/2017/dec/15/we-started-fact-checking-partnership-facebook-year/), which puts them beyond the scope of my analysis. When I discuss PolitiFact's ratings of statements made by websites, I only analyze those that appear in PolitiFact's Truth-O-Meter ratings.  
